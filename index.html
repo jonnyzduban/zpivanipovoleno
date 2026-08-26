@@ -6,14 +6,14 @@
     <title>🔥 Zpěvník k ohni</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --card-hover: #2a2a2a;
-            --text-color: #e0e0e0;
-            --accent-color: #ff9800;
-            --chord-color: #ffb74d;
-            --chord-bg: rgba(255, 183, 77, 0.2);
-            --border-color: #333;
+            --bg-color: #ffffff;
+            --card-bg: #f8f9fa;
+            --card-hover: #e9ecef;
+            --text-color: #212529;
+            --accent-color: #d32f2f;
+            --chord-color: #d32f2f;
+            --chord-bg: rgba(211, 47, 47, 0.1);
+            --border-color: #dee2e6;
         }
 
         * {
@@ -54,7 +54,7 @@
 
         .btn-back {
             background-color: var(--accent-color);
-            color: #000;
+            color: #fff;
             font-weight: bold;
             border: none;
             padding: 8px 16px;
@@ -75,6 +75,10 @@
             font-size: 16px;
             margin-bottom: 15px;
             outline: none;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-color);
         }
 
         .song-list {
@@ -102,8 +106,15 @@
 
         .song-item::after {
             content: "❯";
-            color: #666;
+            color: #999;
             font-size: 14px;
+        }
+
+        /* Styl pro jméno interpreta */
+        .artist-name {
+            font-size: 0.85em;
+            color: #6c757d;
+            font-weight: normal;
         }
 
         /* Detail Písně */
@@ -126,9 +137,9 @@
 
         pre {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 13px; /* Zmenšeno pro mobil – vejde se více znaků */
+            font-size: 13px;
             line-height: 1.5;
-            white-space: pre; /* Zachovává přesné mezery bez nechtěného zalamování */
+            white-space: pre;
             color: var(--text-color);
             margin: 0;
         }
@@ -137,7 +148,7 @@
             color: var(--chord-color);
             font-weight: bold;
             background-color: var(--chord-bg);
-            padding: 1px 0; /* Zrušen horizontální padding, aby se neposouvaly akordy */
+            padding: 1px 0;
             border-radius: 3px;
         }
     </style>
@@ -151,9 +162,9 @@
 
     <!-- POHLED 1: SEZNAM PÍSNÍ -->
     <div id="view-list">
-        <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku..." oninput="filterSongs()">
+        <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
         <div class="song-list" id="song-list">
-            <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
+            <div style="text-align: center; color: #6c757d; padding: 20px;">Načítám seznam písní...</div>
         </div>
     </div>
 
@@ -185,7 +196,8 @@
                         songs = files
                             .filter(file => file.name.endsWith('.txt'))
                             .map(file => ({
-                                name: formatTitle(file.name),
+                                formattedName: formatTitle(file.name),
+                                rawName: cleanTitle(file.name),
                                 url: file.download_url
                             }));
                     }
@@ -196,56 +208,70 @@
                     if (res && res.ok) {
                         const fileNames = await res.json();
                         songs = fileNames.map(name => ({
-                            name: formatTitle(name),
+                            formattedName: formatTitle(name),
+                            rawName: cleanTitle(name),
                             url: name
                         }));
                     }
                 }
 
-                songs.sort((a, b) => a.name.localeCompare(b.name, 'cs', { sensitivity: 'base' }));
+                songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
 
                 allSongs = songs;
                 renderSongList(allSongs);
 
             } catch (err) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání souborů.</div>';
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#6c757d;">Chyba při načítání souborů.</div>';
             }
         }
 
-        function formatTitle(filename) {
-            let name = filename.replace(/\.txt$/i, '').replace(/[-_]/g, ' ');
+        function cleanTitle(filename) {
+            let name = filename.replace(/\.txt$/i, '').replace(/_/g, ' ').trim();
             if (name === name.toUpperCase()) {
                 name = name.toLowerCase();
             }
             return name.charAt(0).toUpperCase() + name.slice(1);
         }
 
+        function formatTitle(filename) {
+            const fullTitle = cleanTitle(filename);
+            const parts = fullTitle.split('-');
+
+            if (parts.length > 1) {
+                const songName = parts[0].trim();
+                const artistName = parts.slice(1).join('-').trim();
+                return `${songName} <span class="artist-name">- ${artistName}</span>`;
+            }
+
+            return fullTitle;
+        }
+
         function renderSongList(songs) {
             const listContainer = document.getElementById('song-list');
             if (songs.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny. Nahrajte .txt soubory.</div>';
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#6c757d;">Žádné písně nenalezeny. Nahrajte .txt soubory.</div>';
                 return;
             }
 
             listContainer.innerHTML = songs.map(song => `
-                <div class="song-item" onclick="openSong('${encodeURIComponent(song.url)}', '${song.name.replace(/'/g, "\\'")}')">
-                    ${song.name}
+                <div class="song-item" onclick="openSong('${encodeURIComponent(song.url)}', '${song.formattedName.replace(/'/g, "\\'")}')">
+                    <div>${song.formattedName}</div>
                 </div>
             `).join('');
         }
 
         function filterSongs() {
             const query = document.getElementById('search').value.toLowerCase();
-            const filtered = allSongs.filter(s => s.name.toLowerCase().includes(query));
+            const filtered = allSongs.filter(s => s.rawName.toLowerCase().includes(query));
             renderSongList(filtered);
         }
 
-        async function openSong(url, title) {
+        async function openSong(url, titleHtml) {
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
             document.getElementById('btn-back').style.display = 'block';
             document.getElementById('header-title').innerText = "🎵 Detail";
-            document.getElementById('detail-title').innerText = title;
+            document.getElementById('detail-title').innerHTML = titleHtml;
 
             const contentElem = document.getElementById('detail-content');
             contentElem.innerText = "Načítám...";

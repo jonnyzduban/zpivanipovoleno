@@ -215,9 +215,11 @@
             }
         }
 
-        function formatTitle(filename) {
-            return filename.replace('.txt', '').replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        }
+       function formatTitle(filename) {
+    let name = filename.replace('.txt', '').replace(/[-_]/g, ' ');
+    // Zvětší pouze úplně první písmeno celého názvu
+    return name.charAt(0).toUpperCase() + name.slice(1);
+}
 
         function renderSongList(songs) {
             const listContainer = document.getElementById('song-list');

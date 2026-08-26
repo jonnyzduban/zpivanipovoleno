@@ -6,14 +6,14 @@
     <title>🔥 Zpěvník k ohni</title>
     <style>
         :root {
-            --bg-color: #ffffff;
-            --card-bg: #f8f9fa;
-            --card-hover: #e9ecef;
-            --text-color: #212529;
-            --accent-color: #d32f2f;
-            --chord-color: #d32f2f;
-            --chord-bg: rgba(211, 47, 47, 0.1);
-            --border-color: #dee2e6;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --card-hover: #2a2a2a;
+            --text-color: #e0e0e0;
+            --accent-color: #ff9800;
+            --chord-color: #ffb74d;
+            --chord-bg: rgba(255, 183, 77, 0.2);
+            --border-color: #333;
         }
 
         * {
@@ -54,7 +54,7 @@
 
         .btn-back {
             background-color: var(--accent-color);
-            color: #fff;
+            color: #000;
             font-weight: bold;
             border: none;
             padding: 8px 16px;
@@ -75,10 +75,6 @@
             font-size: 16px;
             margin-bottom: 15px;
             outline: none;
-        }
-
-        .search-box:focus {
-            border-color: var(--accent-color);
         }
 
         .song-list {
@@ -106,14 +102,14 @@
 
         .song-item::after {
             content: "❯";
-            color: #999;
+            color: #666;
             font-size: 14px;
         }
 
         /* Styl pro jméno interpreta */
         .artist-name {
             font-size: 0.85em;
-            color: #6c757d;
+            color: #aaa;
             font-weight: normal;
         }
 
@@ -164,7 +160,7 @@
     <div id="view-list">
         <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
         <div class="song-list" id="song-list">
-            <div style="text-align: center; color: #6c757d; padding: 20px;">Načítám seznam písní...</div>
+            <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
         </div>
     </div>
 
@@ -176,6 +172,7 @@
 
     <script>
         let allSongs = [];
+        let currentFilteredSongs = [];
 
         async function fetchSongList() {
             const listContainer = document.getElementById('song-list');
@@ -221,7 +218,7 @@
                 renderSongList(allSongs);
 
             } catch (err) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#6c757d;">Chyba při načítání souborů.</div>';
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání souborů.</div>';
             }
         }
 
@@ -247,14 +244,16 @@
         }
 
         function renderSongList(songs) {
+            currentFilteredSongs = songs;
             const listContainer = document.getElementById('song-list');
+            
             if (songs.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#6c757d;">Žádné písně nenalezeny. Nahrajte .txt soubory.</div>';
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny. Nahrajte .txt soubory.</div>';
                 return;
             }
 
-            listContainer.innerHTML = songs.map(song => `
-                <div class="song-item" onclick="openSong('${encodeURIComponent(song.url)}', '${song.formattedName.replace(/'/g, "\\'")}')">
+            listContainer.innerHTML = songs.map((song, index) => `
+                <div class="song-item" onclick="openSongByIndex(${index})">
                     <div>${song.formattedName}</div>
                 </div>
             `).join('');
@@ -266,13 +265,20 @@
             renderSongList(filtered);
         }
 
-        async function openSong(url, titleHtml) {
+        function openSongByIndex(index) {
+            const song = currentFilteredSongs[index];
+            if (!song) return;
+
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
             document.getElementById('btn-back').style.display = 'block';
             document.getElementById('header-title').innerText = "🎵 Detail";
-            document.getElementById('detail-title').innerHTML = titleHtml;
+            document.getElementById('detail-title').innerHTML = song.formattedName;
 
+            openSongContent(song.url);
+        }
+
+        async function openSongContent(url) {
             const contentElem = document.getElementById('detail-content');
             contentElem.innerText = "Načítám...";
 

@@ -38,7 +38,7 @@
             position: sticky;
             top: 0;
             background-color: var(--bg-color);
-            padding: 10px 0 15px 0;
+            padding: 12px 0 16px 0;
             border-bottom: 2px solid var(--accent-color);
             margin-bottom: 15px;
             z-index: 100;
@@ -47,9 +47,13 @@
             justify-content: space-between;
         }
 
-        h1 {
-            font-size: 20px;
+        /* Zvětšený a klikatelný nadpis */
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
             color: var(--accent-color);
+            cursor: pointer;
+            user-select: none;
         }
 
         .btn-back {
@@ -106,7 +110,7 @@
             font-size: 14px;
         }
 
-        /* Styl pro jméno interpreta */
+        /* Styl pro zmenšené jméno interpreta */
         .artist-name {
             font-size: 0.85em;
             color: #aaa;
@@ -152,7 +156,7 @@
 <body>
 
     <header>
-        <h1 id="header-title">🔥 Zpívání povoleno 2.0</h1>
+        <h1 id="header-title" class="header-title" onclick="showList()">🔥 Zpívání povoleno 2.0</h1>
         <button class="btn-back" id="btn-back" onclick="showList()">❮ Zpět</button>
     </header>
 
@@ -272,7 +276,6 @@
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
             document.getElementById('btn-back').style.display = 'block';
-            document.getElementById('header-title').innerText = "🎵 Detail";
             document.getElementById('detail-title').innerHTML = song.formattedName;
 
             openSongContent(song.url);
@@ -297,7 +300,6 @@
             document.getElementById('view-list').style.display = 'block';
             document.getElementById('view-detail').style.display = 'none';
             document.getElementById('btn-back').style.display = 'none';
-            document.getElementById('header-title').innerText = "🔥 Zpívání povoleno 2.0";
             window.scrollTo(0, 0);
         }
 

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🔥 Zpěvník k ohni</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --card-hover: #2a2a2a;
+            --text-color: #e0e0e0;
+            --accent-color: #ff9800;
+            --chord-color: #ffb74d;
+            --chord-bg: rgba(255, 183, 77, 0.2);
+            --border-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 12px;
+            max-width: 800px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        /* Hlavička a Navigace */
+        header {
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            padding: 10px 0 15px 0;
+            border-bottom: 2px solid var(--accent-color);
+            margin-bottom: 15px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        h1 {
+            font-size: 20px;
+            color: var(--accent-color);
+        }
+
+        .btn-back {
+            background-color: var(--accent-color);
+            color: #000;
+            font-weight: bold;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            display: none; /* Zobrazí se až v detailu písně */
+        }
+
+        /* Vyhledávání a Seznam */
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .song-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .song-item {
+            background-color: var(--card-bg);
+            padding: 16px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .song-item:active {
+            background-color: var(--card-hover);
+        }
+
+        .song-item::after {
+            content: "❯";
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Detail Písně */
+        .song-detail {
+            display: none;
+            background-color: var(--card-bg);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto; /* Posun do stran pro mobilní displeje při dlouhých řádcích */
+        }
+
+        .song-title {
+            font-size: 22px;
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        pre {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            white-space: pre;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .chord {
+            color: var(--chord-color);
+            font-weight: bold;
+            background-color: var(--chord-bg);
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="header-title">🔥 Zpívání povoleno 2.0</h1>
+        <button class="btn-back" id="btn-back" onclick="showList()">❮ Zpět</button>
+    </header>
+
+    <!-- POHLED 1: SEZNAM PÍSNÍ -->
+    <div id="view-list">
+        <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku..." oninput="filterSongs()">
+        <div class="song-list" id="song-list">
+            <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
+        </div>
+    </div>
+
+    <!-- POHLED 2: DETAIL PÍSNĚ -->
+    <div id="view-detail" class="song-detail">
+        <h2 class="song-title" id="detail-title"></h2>
+        <pre id="detail-content"></pre>
+    </div>
+
+    <script>
+        let allSongs = [];
+
+        // Automatické načtení všech .txt souborů z GitHub repozitáře
+        async function fetchSongList() {
+            const listContainer = document.getElementById('song-list');
+            
+            try {
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                const hostnameParts = window.location.hostname.split('.');
+                let songs = [];
+
+                if (window.location.hostname.includes('github.io')) {
+                    const user = hostnameParts[0];
+                    const repo = pathParts[0] || '';
+                    const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/`;
+
+                    const response = await fetch(apiUrl);
+                    if (response.ok) {
+                        const files = await response.json();
+                        songs = files
+                            .filter(file => file.name.endsWith('.txt'))
+                            .map(file => ({
+                                name: formatTitle(file.name),
+                                url: file.download_url
+                            }));
+                    }
+                }
+
+                // Pokud běžíte lokálně (mimo GitHub Pages), načte se ze 'songs.json'
+                if (songs.length === 0) {
+                    const res = await fetch('songs.json').catch(() => null);
+                    if (res && res.ok) {
+                        const fileNames = await res.json();
+                        songs = fileNames.map(name => ({
+                            name: formatTitle(name),
+                            url: name
+                        }));
+                    }
+                }
+
+                // ABECEDNÍ SEŘAZENÍ (S ČESKOU DIAKRITIKOU)
+                songs.sort((a, b) => a.name.localeCompare(b.name, 'cs', { sensitivity: 'base' }));
+
+                allSongs = songs;
+                renderSongList(allSongs);
+
+            } catch (err) {
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání souborů.</div>';
+            }
+        }
+
+        function formatTitle(filename) {
+            return filename.replace('.txt', '').replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function renderSongList(songs) {
+            const listContainer = document.getElementById('song-list');
+            if (songs.length === 0) {
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny. Nahrajte .txt soubory.</div>';
+                return;
+            }
+
+            listContainer.innerHTML = songs.map(song => `
+                <div class="song-item" onclick="openSong('${encodeURIComponent(song.url)}', '${song.name.replace(/'/g, "\\'")}')">
+                    ${song.name}
+                </div>
+            `).join('');
+        }
+
+        function filterSongs() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = allSongs.filter(s => s.name.toLowerCase().includes(query));
+            renderSongList(filtered);
+        }
+
+        async function openSong(url, title) {
+            document.getElementById('view-list').style.display = 'none';
+            document.getElementById('view-detail').style.display = 'block';
+            document.getElementById('btn-back').style.display = 'block';
+            document.getElementById('header-title').innerText = "🎵 Detail";
+            document.getElementById('detail-title').innerText = title;
+
+            const contentElem = document.getElementById('detail-content');
+            contentElem.innerText = "Načítám...";
+
+            try {
+                const response = await fetch(decodeURIComponent(url));
+                const text = await response.text();
+                contentElem.innerHTML = highlightChords(text);
+            } catch (err) {
+                contentElem.innerText = "Chyba při načítání písně.";
+            }
+
+            window.scrollTo(0, 0);
+        }
+
+        function showList() {
+            document.getElementById('view-list').style.display = 'block';
+            document.getElementById('view-detail').style.display = 'none';
+            document.getElementById('btn-back').style.display = 'none';
+            document.getElementById('header-title').innerText = "🔥 Zpívání povoleno 2.0";
+            window.scrollTo(0, 0);
+        }
+
+        // Automatické zvraznění akordů s přesným zachováním mezer
+        function highlightChords(text) {
+            const chordRegex = /\b([A-H][b#]?(m|maj|mi|dim|aug|sus)?[0-9]?)\b/g;
+            
+            return text.split('\n').map(line => {
+                const isChordLine = line.replace(chordRegex, '').trim() === '';
+                if (isChordLine && line.trim() !== '') {
+                    return line.replace(chordRegex, '<span class="chord">$1</span>');
+                }
+                return line;
+            }).join('\n');
+        }
+
+        window.onload = fetchSongList;
+    </script>
+</body>
+</html>

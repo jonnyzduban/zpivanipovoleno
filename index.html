@@ -61,7 +61,7 @@
             border-radius: 20px;
             font-size: 14px;
             cursor: pointer;
-            display: none; /* Zobrazí se až v detailu písně */
+            display: none;
         }
 
         /* Vyhledávání a Seznam */
@@ -113,7 +113,7 @@
             padding: 16px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            overflow-x: auto; /* Posun do stran pro mobilní displeje při dlouhých řádcích */
+            overflow-x: auto;
         }
 
         .song-title {
@@ -126,9 +126,9 @@
 
         pre {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 15px;
-            line-height: 1.6;
-            white-space: pre;
+            font-size: 13px; /* Zmenšeno pro mobil – vejde se více znaků */
+            line-height: 1.5;
+            white-space: pre; /* Zachovává přesné mezery bez nechtěného zalamování */
             color: var(--text-color);
             margin: 0;
         }
@@ -137,7 +137,7 @@
             color: var(--chord-color);
             font-weight: bold;
             background-color: var(--chord-bg);
-            padding: 1px 3px;
+            padding: 1px 0; /* Zrušen horizontální padding, aby se neposouvaly akordy */
             border-radius: 3px;
         }
     </style>
@@ -166,7 +166,6 @@
     <script>
         let allSongs = [];
 
-        // Automatické načtení všech .txt souborů z GitHub repozitáře
         async function fetchSongList() {
             const listContainer = document.getElementById('song-list');
             
@@ -192,7 +191,6 @@
                     }
                 }
 
-                // Pokud běžíte lokálně (mimo GitHub Pages), načte se ze 'songs.json'
                 if (songs.length === 0) {
                     const res = await fetch('songs.json').catch(() => null);
                     if (res && res.ok) {
@@ -204,7 +202,6 @@
                     }
                 }
 
-                // ABECEDNÍ SEŘAZENÍ (S ČESKOU DIAKRITIKOU)
                 songs.sort((a, b) => a.name.localeCompare(b.name, 'cs', { sensitivity: 'base' }));
 
                 allSongs = songs;
@@ -215,11 +212,13 @@
             }
         }
 
-       function formatTitle(filename) {
-    let name = filename.replace('.txt', '').replace(/[-_]/g, ' ');
-    // Zvětší pouze úplně první písmeno celého názvu
-    return name.charAt(0).toUpperCase() + name.slice(1);
-}
+        function formatTitle(filename) {
+            let name = filename.replace(/\.txt$/i, '').replace(/[-_]/g, ' ');
+            if (name === name.toUpperCase()) {
+                name = name.toLowerCase();
+            }
+            return name.charAt(0).toUpperCase() + name.slice(1);
+        }
 
         function renderSongList(songs) {
             const listContainer = document.getElementById('song-list');
@@ -270,7 +269,6 @@
             window.scrollTo(0, 0);
         }
 
-        // Automatické zvraznění akordů s přesným zachováním mezer
         function highlightChords(text) {
             const chordRegex = /\b([A-H][b#]?(m|maj|mi|dim|aug|sus)?[0-9]?)\b/g;
             

@@ -109,6 +109,15 @@
             content: "❯";
             color: #666;
             font-size: 14px;
+            margin-left: 10px;
+        }
+
+        /* Styl pro pořadové číslo */
+        .song-number {
+            color: var(--accent-color);
+            font-weight: bold;
+            margin-right: 8px;
+            opacity: 0.8;
         }
 
         .artist-name {
@@ -256,9 +265,12 @@
                 return;
             }
 
+            // Přidáno automatické číslo před každý název (index + 1)
             listContainer.innerHTML = songs.map((song, index) => `
                 <div class="song-item" onclick="openSongByIndex(${index})">
-                    <div>${song.formattedName}</div>
+                    <div>
+                        <span class="song-number">${index + 1}.</span>${song.formattedName}
+                    </div>
                 </div>
             `).join('');
         }
@@ -273,9 +285,7 @@
             const song = currentFilteredSongs[index];
             if (!song) return;
 
-            // Zaznamenat nový stav do historie prohlížeče
             history.pushState({ view: 'detail' }, '', '#detail');
-
             showDetailUI(song);
         }
 
@@ -303,10 +313,9 @@
             window.scrollTo(0, 0);
         }
 
-        // Akce pro ruční kliknutí na tlačítko Zpět nebo na hlavičku
         function goBack() {
             if (window.location.hash === '#detail') {
-                history.back(); // Vyvolá událost popstate, která zavolá showListUI()
+                history.back();
             } else {
                 showListUI();
             }
@@ -331,7 +340,6 @@
             }).join('\n');
         }
 
-        // Odchytávání systémového tlačítka Zpět (na mobilu i v prohlížeči)
         window.addEventListener('popstate', (event) => {
             if (window.location.hash !== '#detail') {
                 showListUI();

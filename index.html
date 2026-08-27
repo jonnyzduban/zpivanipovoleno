@@ -47,13 +47,14 @@
             justify-content: space-between;
         }
 
-        /* Zvětšený a klikatelný nadpis */
         .header-title {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
             color: var(--accent-color);
             cursor: pointer;
             user-select: none;
+            display: flex;
+            align-items: center;
         }
 
         .btn-back {
@@ -110,7 +111,6 @@
             font-size: 14px;
         }
 
-        /* Styl pro zmenšené jméno interpreta */
         .artist-name {
             font-size: 0.85em;
             color: #aaa;
@@ -156,8 +156,8 @@
 <body>
 
     <header>
-        <h1 id="header-title" class="header-title" onclick="showList()">🔥 Zpívání povoleno 2.0</h1>
-        <button class="btn-back" id="btn-back" onclick="showList()">❮ Zpět</button>
+        <div id="header-title" class="header-title" onclick="goBack()">🔥 Zpívání povoleno 2.0</div>
+        <button class="btn-back" id="btn-back" onclick="goBack()">❮ Zpět</button>
     </header>
 
     <!-- POHLED 1: SEZNAM PÍSNÍ -->
@@ -273,6 +273,13 @@
             const song = currentFilteredSongs[index];
             if (!song) return;
 
+            // Zaznamenat nový stav do historie prohlížeče
+            history.pushState({ view: 'detail' }, '', '#detail');
+
+            showDetailUI(song);
+        }
+
+        function showDetailUI(song) {
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
             document.getElementById('btn-back').style.display = 'block';
@@ -296,7 +303,16 @@
             window.scrollTo(0, 0);
         }
 
-        function showList() {
+        // Akce pro ruční kliknutí na tlačítko Zpět nebo na hlavičku
+        function goBack() {
+            if (window.location.hash === '#detail') {
+                history.back(); // Vyvolá událost popstate, která zavolá showListUI()
+            } else {
+                showListUI();
+            }
+        }
+
+        function showListUI() {
             document.getElementById('view-list').style.display = 'block';
             document.getElementById('view-detail').style.display = 'none';
             document.getElementById('btn-back').style.display = 'none';
@@ -314,6 +330,13 @@
                 return line;
             }).join('\n');
         }
+
+        // Odchytávání systémového tlačítka Zpět (na mobilu i v prohlížeči)
+        window.addEventListener('popstate', (event) => {
+            if (window.location.hash !== '#detail') {
+                showListUI();
+            }
+        });
 
         window.onload = fetchSongList;
     </script>

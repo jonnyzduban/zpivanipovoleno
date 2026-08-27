@@ -112,12 +112,13 @@
             margin-left: 10px;
         }
 
-        /* Styl pro pořadové číslo */
+        /* Tenčí a menší číslo písničky */
         .song-number {
             color: var(--accent-color);
-            font-weight: bold;
+            font-weight: normal;
+            font-size: 0.85em;
             margin-right: 8px;
-            opacity: 0.8;
+            opacity: 0.5;
         }
 
         .artist-name {
@@ -265,7 +266,6 @@
                 return;
             }
 
-            // Přidáno automatické číslo před každý název (index + 1)
             listContainer.innerHTML = songs.map((song, index) => `
                 <div class="song-item" onclick="openSongByIndex(${index})">
                     <div>

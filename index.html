@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🔥Zpívání povoleno 2.0</title>
+    <title>🔥 Zpěvník k ohni</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -72,26 +72,28 @@
         /* Vyhledávání a Seznam */
         .search-box {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 10px;
             border: 1px solid var(--border-color);
             background-color: var(--card-bg);
             color: var(--text-color);
             font-size: 16px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             outline: none;
         }
 
+        /* Zmenšená mezera mezi kartami */
         .song-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 6px;
         }
 
+        /* Kompaktnější pole písničky */
         .song-item {
             background-color: var(--card-bg);
-            padding: 16px 20px;
-            border-radius: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
             border: 1px solid var(--border-color);
             font-size: 17px;
             font-weight: 500;
@@ -166,7 +168,7 @@
 <body>
 
     <header>
-        <div id="header-title" class="header-title" onclick="goBack()">Zpívání povoleno 2.0</div>
+        <div id="header-title" class="header-title" onclick="goBack()">🔥 Zpívání povoleno 2.0</div>
         <button class="btn-back" id="btn-back" onclick="goBack()">❮ Zpět</button>
     </header>
 

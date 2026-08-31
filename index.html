@@ -167,7 +167,7 @@
         pre {
             font-family: 'Courier New', Courier, monospace;
             font-size: 13px;
-            font-weight: 500; /* Tenčí písmo */
+            font-weight: 500;
             line-height: 1.4;
             letter-spacing: -0.3px;
             word-spacing: -2px;
@@ -195,7 +195,7 @@
     <header>
         <div id="header-title" class="header-title" onclick="goBack()">🔥 Zpívání povoleno 2.0</div>
         <div class="header-controls">
-            <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" title="Přepnout motiv">☀️</button>
+            <button class="btn-theme" id="btn-theme" onclick="toggleTheme(event)" title="Přepnout motiv">☀️</button>
         </div>
     </header>
 
@@ -230,7 +230,11 @@
             }
         }
 
-        function toggleTheme() {
+        function toggleTheme(event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
             const body = document.body;
             const themeBtn = document.getElementById('btn-theme');
             

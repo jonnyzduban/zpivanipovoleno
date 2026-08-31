@@ -13,19 +13,17 @@
             --text-color: #e0e0e0;
             --accent-color: #ff9800;
             --chord-color: #ffb74d;
-            --chord-bg: rgba(255, 183, 77, 0.2);
             --border-color: #333;
         }
 
-        /* Světlý režim (bílé pozadí, černý text, červené akordy) */
+        /* Světlý režim (bílé pozadí, černý text, oranžové nadpisy, červené akordy) */
         body.light-theme {
             --bg-color: #ffffff;
             --card-bg: #f5f5f5;
             --card-hover: #e8e8e8;
             --text-color: #000000;
-            --accent-color: #d32f2f;
+            --accent-color: #ff9800;
             --chord-color: #d32f2f;
-            --chord-bg: rgba(211, 47, 47, 0.1);
             --border-color: #ddd;
         }
 
@@ -77,7 +75,7 @@
             align-items: center;
         }
 
-        .btn-theme, .btn-back {
+        .btn-theme {
             background-color: var(--accent-color);
             color: #fff;
             font-weight: bold;
@@ -89,14 +87,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        body.light-theme .btn-theme, body.light-theme .btn-back {
-            color: #fff;
-        }
-
-        .btn-back {
-            display: none;
         }
 
         /* Vyhledávání a Seznam */
@@ -183,12 +173,11 @@
             margin: 0;
         }
 
+        /* Akordy pouze s barevným odlišením písma bez podbarvení */
         .chord {
             color: var(--chord-color);
             font-weight: bold;
-            background-color: var(--chord-bg);
-            padding: 1px 2px;
-            border-radius: 3px;
+            background-color: transparent;
         }
     </style>
 </head>
@@ -198,7 +187,6 @@
         <div id="header-title" class="header-title" onclick="goBack()">🔥 Zpívání povoleno 2.0</div>
         <div class="header-controls">
             <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" title="Přepnout motiv">☀️</button>
-            <button class="btn-back" id="btn-back" onclick="goBack()">❮ Zpět</button>
         </div>
     </header>
 
@@ -352,7 +340,6 @@
         function showDetailUI(song) {
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
-            document.getElementById('btn-back').style.display = 'block';
             document.getElementById('detail-title').innerHTML = song.formattedName;
 
             openSongContent(song.url);
@@ -384,7 +371,6 @@
         function showListUI() {
             document.getElementById('view-list').style.display = 'block';
             document.getElementById('view-detail').style.display = 'none';
-            document.getElementById('btn-back').style.display = 'none';
             window.scrollTo(0, 0);
         }
 

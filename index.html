@@ -16,7 +16,7 @@
             --border-color: #333;
         }
 
-        /* Světlý režim (bílé pozadí, černý text, oranžové nadpisy, červené akordy) */
+        /* Světlý režim (jasná čistá černá pro text) */
         body.light-theme {
             --bg-color: #ffffff;
             --card-bg: #f5f5f5;
@@ -167,12 +167,19 @@
         pre {
             font-family: 'Courier New', Courier, monospace;
             font-size: 13px;
-            line-height: 1.5;
+            font-weight: 600; /* O něco tlustší písmo */
+            line-height: 1.4;
             letter-spacing: -0.3px;
-            word-spacing: -1px;
+            word-spacing: -2px;
             white-space: pre;
             color: var(--text-color);
             margin: 0;
+        }
+
+        /* Menší rozestup pro samostatné textové řádky bez akordů */
+        .lyrics-line {
+            display: block;
+            line-height: 1.15;
         }
 
         /* Akordy pouze s barevným odlišením písma bez podbarvení */
@@ -384,8 +391,8 @@
                 if (isChordLine && line.trim() !== '') {
                     return line.replace(chordRegex, '<span class="chord">$1</span>');
                 }
-                return line;
-            }).join('\n');
+                return `<span class="lyrics-line">${line}</span>`;
+            }).join('');
         }
 
         window.addEventListener('popstate', (event) => {

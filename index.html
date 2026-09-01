@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🔥 Zpěvník k ohni</title>
+    <!-- Načtení stejného nepatkového fontu pro všechna zařízení -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
         /* Tmavý režim (výchozí) */
         :root {
@@ -165,21 +170,23 @@
         }
 
         pre {
-            font-family: Consolas, "Courier New", Courier, monospace;
+            font-family: 'Roboto Mono', Consolas, monospace;
             font-size: 14px;
-            font-weight: normal;
+            font-weight: 400;
             line-height: 1.35;
             letter-spacing: 0;
             word-spacing: 0;
             white-space: pre;
             color: var(--text-color);
             margin: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* Akordy v červené barvě */
         .chord {
             color: var(--chord-color);
-            font-weight: normal;
+            font-weight: 500;
             background-color: transparent;
         }
     </style>

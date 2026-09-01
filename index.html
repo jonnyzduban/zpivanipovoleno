@@ -379,12 +379,29 @@
                 const response = await fetch(decodeURIComponent(url));
                 const text = await response.text();
                 contentElem.innerHTML = highlightChords(text);
-                contentElem.style.fontSize = currentFontSize + 'px';
+                
+                // Automatické nastavení fit velikosti při každém otevření písně
+                setTimeout(autoFitFont, 50);
             } catch (err) {
                 contentElem.innerText = "Chyba při načítání písně.";
             }
 
             window.scrollTo(0, 0);
+        }
+
+        /* Automatické výchozí zmenšení písma na šířku displeje */
+        function autoFitFont() {
+            const contentElem = document.getElementById('detail-content');
+            let size = 16;
+            contentElem.style.fontSize = size + 'px';
+
+            const containerWidth = contentElem.clientWidth;
+            
+            while (contentElem.scrollWidth > containerWidth && size > 7) {
+                size -= 0.5;
+                contentElem.style.fontSize = size + 'px';
+            }
+            currentFontSize = size;
         }
 
         function changeFontSize(delta) {

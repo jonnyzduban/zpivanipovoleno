@@ -40,7 +40,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            padding: 4px 6px; /* Zmenšen okraj celého webu */
+            padding: 4px 6px;
             max-width: 800px;
             margin: 0 auto;
             min-height: 100vh;
@@ -52,7 +52,7 @@
             position: sticky;
             top: 0;
             background-color: var(--bg-color);
-            padding: 4px 0; /* Kompaktnější hlavička */
+            padding: 4px 0;
             border-bottom: 2px solid var(--accent-color);
             margin-bottom: 6px;
             z-index: 100;
@@ -65,7 +65,7 @@
         }
 
         .header-title {
-            font-size: 18px; /* Mírně zmenšený název */
+            font-size: 18px;
             font-weight: bold;
             color: var(--accent-color);
             cursor: pointer;
@@ -107,7 +107,7 @@
         /* Vyhledávání a Seznam */
         .search-box {
             width: 100%;
-            padding: 6px 10px; /* Kompaktnější vyhledávač */
+            padding: 6px 10px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             background-color: var(--card-bg);
@@ -120,15 +120,15 @@
         .song-list {
             display: flex;
             flex-direction: column;
-            gap: 3px; /* Zmenšená mezera mezi písněmi (z 6px na 3px) */
+            gap: 3px;
         }
 
         .song-item {
             background-color: var(--card-bg);
-            padding: 5px 10px; /* Výrazně zmenšený padding z 10px na 5px */
+            padding: 5px 10px;
             border-radius: 6px;
             border: 1px solid var(--border-color);
-            font-size: 14px; /* Zmenšeno písmo z 17px na 14px */
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             display: flex;
@@ -255,6 +255,7 @@
         let allSongs = [];
         let currentFilteredSongs = [];
         let currentFontSize = 14;
+        let wakeLock = null; // Proměnná pro uchování stavu Wake Lock
 
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
@@ -373,10 +374,14 @@
             showDetailUI(song);
         }
 
-        function showDetailUI(song) {
+        async function showDetailUI(song) {
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
             document.getElementById('detail-title').innerHTML = song.formattedName;
+            
+            // Aktivace zabránění zhasnutí displeje
+            await requestWakeLock();
+
             openSongContent(song.url);
         }
 
@@ -399,6 +404,30 @@
             }
 
             window.scrollTo(0, 0);
+        }
+
+        // Funkce pro požadavek na nezhasínání displeje
+        async function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                } catch (err) {
+                    // Uživatelský systém mohl požadavek zamítnout (např. nízký stav baterie)
+                    console.log(`${err.name}, ${err.message}`);
+                }
+            }
+        }
+
+        // Funkce pro uvolnění zámku (při návratu na seznam)
+        async function releaseWakeLock() {
+            if (wakeLock !== null) {
+                try {
+                    await wakeLock.release();
+                    wakeLock = null;
+                } catch (err) {
+                    console.log(`${err.name}, ${err.message}`);
+                }
+            }
         }
 
         function autoFitFont() {
@@ -428,7 +457,10 @@
             }
         }
 
-        function showListUI() {
+        async function showListUI() {
+            // Uvolnění Wake Locku při návratu na seznam
+            await releaseWakeLock();
+
             document.getElementById('view-list').style.display = 'block';
             document.getElementById('view-detail').style.display = 'none';
             window.scrollTo(0, 0);
@@ -447,7 +479,16 @@
         }
 
         window.addEventListener('popstate', () => {
-            if (window.location.hash !== '#detail') showListUI();
+            if (window.location.hash !== '#detail') {
+                showListUI();
+            }
+        });
+
+        // Automatické znovuzapnutí Wake Locku, pokud uživatel přepnul aplikaci a vrátil se
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
         });
 
         window.onload = () => {

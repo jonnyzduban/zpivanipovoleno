@@ -162,11 +162,17 @@
         }
 
         .song-title {
-            font-size: 22px;
+            font-size: 26px; /* Zvětšeno pro lepší viditelnost */
+            font-weight: 700;
             color: var(--accent-color);
             margin-bottom: 15px;
             padding-bottom: 8px;
             border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Černá barva názvu písně ve světlém režimu */
+        body.light-theme .song-title {
+            color: #000000;
         }
 
         pre {

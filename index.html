@@ -462,19 +462,19 @@
             }
         }
 
-        /* Transpozice akordů */
-        const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'H'];
-        const scaleFlats = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'B', 'H'];
+        /* Transpozice akordů o půl tónu */
+        const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'H'];
+        const flatMapping = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'B': 'A#', 'Bb': 'A#' };
 
         function transposeChord(chord, semitones) {
             return chord.replace(/[A-H][b#]?/g, (match) => {
-                let index = scale.indexOf(match);
-                if (index === -1) index = scaleFlats.indexOf(match);
+                let normalized = flatMapping[match] || match;
+                let index = chromaticScale.indexOf(normalized);
                 if (index === -1) return match;
 
                 let newIndex = (index + semitones) % 12;
                 if (newIndex < 0) newIndex += 12;
-                return scale[newIndex];
+                return chromaticScale[newIndex];
             });
         }
 

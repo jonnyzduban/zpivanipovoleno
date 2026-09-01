@@ -186,6 +186,8 @@
             border-bottom: 1px solid var(--border-color);
             -webkit-user-select: none;
             user-select: none;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .song-title {
@@ -246,6 +248,8 @@
         <div class="song-header-detail">
             <h2 class="song-title" id="detail-title"></h2>
             <div class="font-controls">
+                <button class="btn-ctrl" onclick="transpose(-1)">-1</button>
+                <button class="btn-ctrl" onclick="transpose(1)">+1</button>
                 <button class="btn-ctrl" onclick="changeFontSize(-1)">A-</button>
                 <button class="btn-ctrl" onclick="changeFontSize(1)">A+</button>
             </div>
@@ -257,6 +261,9 @@
         let allSongs = [];
         let currentFilteredSongs = [];
         let currentFontSize = 14;
+        let originalText = "";
+        let currentTransposeOffset = 0;
+        let wakeLock = null;
 
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
@@ -379,6 +386,7 @@
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
             document.getElementById('detail-title').innerHTML = song.formattedName;
+            requestWakeLock();
             openSongContent(song.url);
         }
 
@@ -389,7 +397,9 @@
             try {
                 const response = await fetch(decodeURIComponent(url));
                 const text = await response.text();
-                contentElem.innerHTML = highlightChords(text);
+                originalText = text;
+                currentTransposeOffset = 0;
+                contentElem.innerHTML = highlightChords(originalText);
                 
                 setTimeout(autoFitFont, 50);
             } catch (err) {
@@ -429,11 +439,53 @@
         function showListUI() {
             document.getElementById('view-list').style.display = 'block';
             document.getElementById('view-detail').style.display = 'none';
+            releaseWakeLock();
             window.scrollTo(0, 0);
         }
 
-        /* Vylepšené podbarvení akordů i s poznámkami (4x, Ref:, atd.) */
-        function highlightChords(text) {
+        /* Správa zhasínání obrazovky (Wake Lock) */
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.log('Wake Lock nebyl povolen.');
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => {
+                    wakeLock = null;
+                });
+            }
+        }
+
+        /* Transpozice akordů */
+        const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'H'];
+        const scaleFlats = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'B', 'H'];
+
+        function transposeChord(chord, semitones) {
+            return chord.replace(/[A-H][b#]?/g, (match) => {
+                let index = scale.indexOf(match);
+                if (index === -1) index = scaleFlats.indexOf(match);
+                if (index === -1) return match;
+
+                let newIndex = (index + semitones) % 12;
+                if (newIndex < 0) newIndex += 12;
+                return scale[newIndex];
+            });
+        }
+
+        function transpose(semitones) {
+            currentTransposeOffset += semitones;
+            const contentElem = document.getElementById('detail-content');
+            contentElem.innerHTML = highlightChords(originalText, currentTransposeOffset);
+        }
+
+        /* Podbarvení a transpozice akordů */
+        function highlightChords(text, semitones = 0) {
             const chordRegex = /\b([A-H][b#]?(m|maj|mi|dim|aug|sus)?[0-9]?(\/[A-H][b#]?)?)\b/g;
 
             return text.split('\n').map(line => {
@@ -441,7 +493,10 @@
                 if (hasLongWords) {
                     return line;
                 }
-                return line.replace(chordRegex, '<span class="chord">$1</span>');
+                return line.replace(chordRegex, (match) => {
+                    const transposed = semitones !== 0 ? transposeChord(match, semitones) : match;
+                    return `<span class="chord">${transposed}</span>`;
+                });
             }).join('\n');
         }
 

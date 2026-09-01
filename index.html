@@ -462,13 +462,17 @@
             }
         }
 
-        /* Transpozice akordů o půl tónu */
+        /* Transpozice akordů */
         const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'H'];
-        const flatMapping = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'B': 'A#', 'Bb': 'A#' };
+
+        const chordMap = {
+            'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#',
+            'As': 'G#', 'Es': 'D#', 'B': 'A#'
+        };
 
         function transposeChord(chord, semitones) {
-            return chord.replace(/[A-H][b#]?/g, (match) => {
-                let normalized = flatMapping[match] || match;
+            return chord.replace(/([A-H][b#]?|As|Es|B)/g, (match) => {
+                let normalized = chordMap[match] || match;
                 let index = chromaticScale.indexOf(normalized);
                 if (index === -1) return match;
 
@@ -478,24 +482,39 @@
             });
         }
 
-        function transpose(semitones) {
-            currentTransposeOffset += semitones;
+        /* Posun o celý tón (2 půltóny) */
+        function transpose(steps) {
+            currentTransposeOffset += steps * 2;
             const contentElem = document.getElementById('detail-content');
             contentElem.innerHTML = highlightChords(originalText, currentTransposeOffset);
         }
 
-        /* Podbarvení a transpozice akordů */
+        /* Podbarvení a úprava zarovnání mezer */
         function highlightChords(text, semitones = 0) {
-            const chordRegex = /\b([A-H][b#]?(m|maj|mi|dim|aug|sus)?[0-9]?(\/[A-H][b#]?)?)\b/g;
+            const chordRegex = /\b([A-H][b#]?|As|Es|B)(m|maj|mi|dim|aug|sus)?[0-9]?(\/([A-H][b#]?|As|Es|B))?\b/g;
 
             return text.split('\n').map(line => {
                 const hasLongWords = /[a-čďéěíňóřšťúůýžA-ČĎÉĚÍŇÓŘŠŤÚŮÝŽ]{4,}/.test(line);
                 if (hasLongWords) {
                     return line;
                 }
-                return line.replace(chordRegex, (match) => {
-                    const transposed = semitones !== 0 ? transposeChord(match, semitones) : match;
-                    return `<span class="chord">${transposed}</span>`;
+
+                if (semitones === 0) {
+                    return line.replace(chordRegex, '<span class="chord">$1</span>');
+                }
+
+                return line.replace(/(\b(?:[A-H][b#]?|As|Es|B)(?:m|maj|mi|dim|aug|sus)?[0-9]?(?:\/(?:[A-H][b#]?|As|Es|B))?\b)(\s*)/g, (match, chord, spaces) => {
+                    const transposed = transposeChord(chord, semitones);
+                    const diff = chord.length - transposed.length;
+                    
+                    let newSpaces = spaces;
+                    if (diff < 0) {
+                        newSpaces = spaces.slice(0, Math.max(0, spaces.length + diff));
+                    } else if (diff > 0) {
+                        newSpaces = spaces + ' '.repeat(diff);
+                    }
+
+                    return `<span class="chord">${transposed}</span>` + newSpaces;
                 });
             }).join('\n');
         }

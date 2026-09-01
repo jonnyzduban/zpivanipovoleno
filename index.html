@@ -253,7 +253,7 @@
             display: inline-flex;
             align-items: center;
             text-decoration: none;
-            color: inherit; /* Aby text dědil barvu patičky a nebyl modrý podtržený */
+            color: inherit;
             transition: transform 0.2s;
         }
 
@@ -434,6 +434,15 @@
             renderSongList(filtered);
         }
 
+        // --- Funkce pro vynulování vyhledávání ---
+        function resetSearch() {
+            const searchInput = document.getElementById('search');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            renderSongList(allSongs);
+        }
+
         function openSongByIndex(index) {
             const song = currentFilteredSongs[index];
             if (!song) return;
@@ -522,6 +531,9 @@
 
         async function showListUI() {
             await releaseWakeLock();
+
+            // Vynuluje vyhledávací pole a obnoví kompletní seznam písní
+            resetSearch();
 
             document.getElementById('view-list').style.display = 'block';
             document.getElementById('view-detail').style.display = 'none';

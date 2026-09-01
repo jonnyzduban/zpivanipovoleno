@@ -62,7 +62,6 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            /* Prevence proti nežádoucímu označování textu a vyskakovacímu vyhledávání */
             -webkit-user-select: none;
             user-select: none;
             touch-action: manipulation;
@@ -220,7 +219,7 @@
 
         .chord {
             color: var(--chord-color);
-            font-weight: 500;
+            font-weight: 700;
             background-color: transparent;
         }
     </style>
@@ -392,7 +391,6 @@
                 const text = await response.text();
                 contentElem.innerHTML = highlightChords(text);
                 
-                // Automatické fit nastavení velikosti textu po zobrazení
                 setTimeout(autoFitFont, 50);
             } catch (err) {
                 contentElem.innerText = "Chyba při načítání písně.";
@@ -401,7 +399,6 @@
             window.scrollTo(0, 0);
         }
 
-        /* Automatické výchozí zmenšení písma na šířku displeje */
         function autoFitFont() {
             const contentElem = document.getElementById('detail-content');
             let size = 16;
@@ -435,14 +432,16 @@
             window.scrollTo(0, 0);
         }
 
+        /* Vylepšené podbarvení akordů i s poznámkami (4x, Ref:, atd.) */
         function highlightChords(text) {
-            const chordRegex = /\b([A-H][b#]?(m|maj|mi|dim|aug|sus)?[0-9]?)\b/g;
+            const chordRegex = /\b([A-H][b#]?(m|maj|mi|dim|aug|sus)?[0-9]?(\/[A-H][b#]?)?)\b/g;
+
             return text.split('\n').map(line => {
-                const isChordLine = line.replace(chordRegex, '').trim() === '';
-                if (isChordLine && line.trim() !== '') {
-                    return line.replace(chordRegex, '<span class="chord">$1</span>');
+                const hasLongWords = /[a-čďéěíňóřšťúůýžA-ČĎÉĚÍŇÓŘŠŤÚŮÝŽ]{4,}/.test(line);
+                if (hasLongWords) {
+                    return line;
                 }
-                return line;
+                return line.replace(chordRegex, '<span class="chord">$1</span>');
             }).join('\n');
         }
 

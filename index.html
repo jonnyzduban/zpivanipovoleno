@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🔥 Zpěvník k ohni</title>
+    <!-- Načtení stejného nepatkového fontu pro všechna zařízení -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
+        /* Tmavý režim (výchozí) */
         :root {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
@@ -19,6 +21,7 @@
             --border-color: #333;
         }
 
+        /* Světlý režim podle pisnicky-akordy.cz */
         body.light-theme {
             --bg-color: #ffffff;
             --card-bg: #ffffff;
@@ -47,6 +50,7 @@
             transition: background-color 0.2s, color 0.2s;
         }
 
+        /* Hlavička a Navigace */
         header {
             position: sticky;
             top: 0;
@@ -103,6 +107,7 @@
             touch-action: manipulation;
         }
 
+        /* Vyhledávání a Seznam */
         .search-box {
             width: 100%;
             padding: 10px 14px;
@@ -162,6 +167,7 @@
             font-weight: normal;
         }
 
+        /* Detail Písně */
         .song-detail {
             display: none;
             background-color: var(--card-bg);
@@ -169,7 +175,6 @@
             border-radius: 12px;
             border: 1px solid var(--border-color);
             overflow-x: auto;
-            margin-bottom: 20px;
         }
 
         .song-header-detail {
@@ -181,8 +186,6 @@
             border-bottom: 1px solid var(--border-color);
             -webkit-user-select: none;
             user-select: none;
-            flex-wrap: wrap;
-            gap: 8px;
         }
 
         .song-title {
@@ -219,30 +222,6 @@
             font-weight: 700;
             background-color: transparent;
         }
-
-        .bottom-transpose-bar {
-            margin-top: 15px;
-            padding-top: 12px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .transpose-label {
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--text-color);
-            opacity: 0.8;
-        }
-
-        .btn-transpose {
-            padding: 8px 18px;
-            font-size: 15px;
-        }
     </style>
 </head>
 <body>
@@ -254,6 +233,7 @@
         </div>
     </header>
 
+    <!-- POHLED 1: SEZNAM PÍSNÍ -->
     <div id="view-list">
         <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
         <div class="song-list" id="song-list">
@@ -261,6 +241,7 @@
         </div>
     </div>
 
+    <!-- POHLED 2: DETAIL PÍSNĚ -->
     <div id="view-detail" class="song-detail">
         <div class="song-header-detail">
             <h2 class="song-title" id="detail-title"></h2>
@@ -269,26 +250,13 @@
                 <button class="btn-ctrl" onclick="changeFontSize(1)">A+</button>
             </div>
         </div>
-
         <pre id="detail-content"></pre>
-
-        <div class="bottom-transpose-bar">
-            <span class="transpose-label">Transpozice:</span>
-            <button class="btn-ctrl btn-transpose" onclick="transpose(-1)">-1 tón</button>
-            <button class="btn-ctrl btn-transpose" onclick="transpose(1)">+1 tón</button>
-        </div>
     </div>
 
     <script>
-        const HARDCODED_SONGS = [
-            "Bedna od Whisky - Miki Ryvola.txt"
-        ];
-
         let allSongs = [];
+        let currentFilteredSongs = [];
         let currentFontSize = 14;
-        let originalText = "";
-        let currentTransposeOffset = 0;
-        let wakeLock = null;
 
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
@@ -318,23 +286,23 @@
         }
 
         async function fetchSongList() {
-            let songs = [];
-
+            const listContainer = document.getElementById('song-list');
             try {
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                const hostnameParts = window.location.hostname.split('.');
+                let songs = [];
+
                 if (window.location.hostname.includes('github.io')) {
-                    const pathParts = window.location.pathname.split('/').filter(p => p);
-                    const hostnameParts = window.location.hostname.split('.');
                     const user = hostnameParts[0];
                     const repo = pathParts[0] || '';
                     const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/`;
 
-                    const response = await fetch(apiUrl).catch(() => null);
-                    if (response && response.ok) {
+                    const response = await fetch(apiUrl);
+                    if (response.ok) {
                         const files = await response.json();
                         songs = files
                             .filter(file => file.name.endsWith('.txt'))
                             .map(file => ({
-                                id: file.name,
                                 formattedName: formatTitle(file.name),
                                 rawName: cleanTitle(file.name),
                                 url: file.download_url
@@ -347,29 +315,20 @@
                     if (res && res.ok) {
                         const fileNames = await res.json();
                         songs = fileNames.map(name => ({
-                            id: name,
                             formattedName: formatTitle(name),
                             rawName: cleanTitle(name),
                             url: name
                         }));
                     }
                 }
+
+                songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
+                allSongs = songs;
+                renderSongList(allSongs);
+
             } catch (err) {
-                console.warn("Automatické načítání selhalo.", err);
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání souborů.</div>';
             }
-
-            if (songs.length === 0) {
-                songs = HARDCODED_SONGS.map(name => ({
-                    id: name,
-                    formattedName: formatTitle(name),
-                    rawName: cleanTitle(name),
-                    url: name
-                }));
-            }
-
-            songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
-            allSongs = songs;
-            renderSongList(allSongs);
         }
 
         function cleanTitle(filename) {
@@ -390,13 +349,14 @@
         }
 
         function renderSongList(songs) {
+            currentFilteredSongs = songs;
             const listContainer = document.getElementById('song-list');
             if (songs.length === 0) {
                 listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny.</div>';
                 return;
             }
             listContainer.innerHTML = songs.map((song, index) => `
-                <div class="song-item" onclick="openSongById('${encodeURIComponent(song.id)}')">
+                <div class="song-item" onclick="openSongByIndex(${index})">
                     <div><span class="song-number">${index + 1}.</span>${song.formattedName}</div>
                 </div>
             `).join('');
@@ -408,9 +368,8 @@
             renderSongList(filtered);
         }
 
-        function openSongById(encodedId) {
-            const id = decodeURIComponent(encodedId);
-            const song = allSongs.find(s => s.id === id);
+        function openSongByIndex(index) {
+            const song = currentFilteredSongs[index];
             if (!song) return;
             history.pushState({ view: 'detail' }, '', '#detail');
             showDetailUI(song);
@@ -420,7 +379,6 @@
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
             document.getElementById('detail-title').innerHTML = song.formattedName;
-            requestWakeLock();
             openSongContent(song.url);
         }
 
@@ -430,15 +388,12 @@
 
             try {
                 const response = await fetch(decodeURIComponent(url));
-                if (!response.ok) throw new Error("Soubor nenalezen");
                 const text = await response.text();
-                originalText = text;
-                currentTransposeOffset = 0;
-                contentElem.innerHTML = highlightChords(originalText);
+                contentElem.innerHTML = highlightChords(text);
                 
                 setTimeout(autoFitFont, 50);
             } catch (err) {
-                contentElem.innerText = "Chyba při načítání písně. Pokud spouštíte web lokálně z disku, prohlížeč blokuje načítání souborů. Použijte lokální server (např. Live Server).";
+                contentElem.innerText = "Chyba při načítání písně.";
             }
 
             window.scrollTo(0, 0);
@@ -448,6 +403,7 @@
             const contentElem = document.getElementById('detail-content');
             let size = 16;
             contentElem.style.fontSize = size + 'px';
+
             const containerWidth = contentElem.clientWidth;
             
             while (contentElem.scrollWidth > containerWidth && size > 7) {
@@ -473,79 +429,19 @@
         function showListUI() {
             document.getElementById('view-list').style.display = 'block';
             document.getElementById('view-detail').style.display = 'none';
-            releaseWakeLock();
             window.scrollTo(0, 0);
         }
 
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) {
-                console.log('Wake Lock nebyl povolen.');
-            }
-        }
-
-        function releaseWakeLock() {
-            if (wakeLock !== null) {
-                wakeLock.release().then(() => {
-                    wakeLock = null;
-                });
-            }
-        }
-
-        const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'H'];
-
-        const chordMap = {
-            'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#',
-            'As': 'G#', 'Es': 'D#', 'B': 'A#'
-        };
-
-        function transposeChord(chord, semitones) {
-            return chord.replace(/([A-H][b#]?|As|Es|B)/g, (match) => {
-                let normalized = chordMap[match] || match;
-                let index = chromaticScale.indexOf(normalized);
-                if (index === -1) return match;
-
-                let newIndex = (index + semitones) % 12;
-                if (newIndex < 0) newIndex += 12;
-                return chromaticScale[newIndex];
-            });
-        }
-
-        function transpose(steps) {
-            currentTransposeOffset += steps * 2;
-            const contentElem = document.getElementById('detail-content');
-            contentElem.innerHTML = highlightChords(originalText, currentTransposeOffset);
-        }
-
-        function highlightChords(text, semitones = 0) {
-            const chordRegex = /\b([A-H][b#]?|As|Es|B)(m|maj|mi|dim|aug|sus)?[0-9]?(\/([A-H][b#]?|As|Es|B))?\b/g;
+        /* Vylepšené podbarvení akordů i s poznámkami (4x, Ref:, atd.) */
+        function highlightChords(text) {
+            const chordRegex = /\b([A-H][b#]?(m|maj|mi|dim|aug|sus)?[0-9]?(\/[A-H][b#]?)?)\b/g;
 
             return text.split('\n').map(line => {
                 const hasLongWords = /[a-čďéěíňóřšťúůýžA-ČĎÉĚÍŇÓŘŠŤÚŮÝŽ]{4,}/.test(line);
                 if (hasLongWords) {
                     return line;
                 }
-
-                if (semitones === 0) {
-                    return line.replace(chordRegex, '<span class="chord">$&</span>');
-                }
-
-                return line.replace(/(\b(?:[A-H][b#]?|As|Es|B)(?:m|maj|mi|dim|aug|sus)?[0-9]?(?:\/(?:[A-H][b#]?|As|Es|B))?\b)(\s*)/g, (match, chord, spaces) => {
-                    const transposed = transposeChord(chord, semitones);
-                    const diff = chord.length - transposed.length;
-                    
-                    let newSpaces = spaces;
-                    if (diff < 0) {
-                        newSpaces = spaces.slice(0, Math.max(0, spaces.length + diff));
-                    } else if (diff > 0) {
-                        newSpaces = spaces + ' '.repeat(diff);
-                    }
-
-                    return `<span class="chord">${transposed}</span>` + newSpaces;
-                });
+                return line.replace(chordRegex, '<span class="chord">$1</span>');
             }).join('\n');
         }
 

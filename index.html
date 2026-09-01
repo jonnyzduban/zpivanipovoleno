@@ -28,7 +28,7 @@
             --card-hover: #f5f5f5;
             --text-color: #000000;
             --accent-color: #ff9800;
-            --chord-color: #cc0000; /* Tmavě červená pro akordy */
+            --chord-color: #cc0000;
             --border-color: #eee;
         }
 
@@ -43,7 +43,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            padding: 12px;
+            padding: 8px;
             max-width: 800px;
             margin: 0 auto;
             min-height: 100vh;
@@ -55,9 +55,9 @@
             position: sticky;
             top: 0;
             background-color: var(--bg-color);
-            padding: 12px 0 16px 0;
+            padding: 8px 0;
             border-bottom: 2px solid var(--accent-color);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             z-index: 100;
             display: flex;
             align-items: center;
@@ -65,7 +65,7 @@
         }
 
         .header-title {
-            font-size: 24px; /* Hlavní titulek zůstává 24px */
+            font-size: 22px;
             font-weight: bold;
             color: var(--accent-color);
             cursor: pointer;
@@ -76,22 +76,29 @@
 
         .header-controls {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
+        }
+
+        .btn-ctrl {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         .btn-theme {
             background-color: var(--accent-color);
             color: #fff;
-            font-weight: bold;
             border: none;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 20px;
             font-size: 14px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         /* Vyhledávání a Seznam */
@@ -155,24 +162,35 @@
         .song-detail {
             display: none;
             background-color: var(--card-bg);
-            padding: 16px;
+            padding: 12px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
             overflow-x: auto;
         }
 
-        .song-title {
-            font-size: 22px; /* Upraveno tak, aby nebylo větší než hlavitý titulek (24px) */
-            font-weight: 700;
-            color: var(--accent-color);
-            margin-bottom: 15px;
-            padding-bottom: 8px;
+        .song-header-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
             border-bottom: 1px solid var(--border-color);
         }
 
-        /* Černá barva názvu písně ve světlém režimu */
+        .song-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin: 0;
+        }
+
         body.light-theme .song-title {
             color: #000000;
+        }
+
+        .font-controls {
+            display: flex;
+            gap: 4px;
         }
 
         pre {
@@ -182,14 +200,12 @@
             line-height: 1.35;
             letter-spacing: 0;
             word-spacing: 0;
-            white-space: pre;
+            white-space: pre; /* Zachovává původní strukturu bez zalamování */
             color: var(--text-color);
             margin: 0;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Akordy v červené barvě */
         .chord {
             color: var(--chord-color);
             font-weight: 500;
@@ -216,15 +232,22 @@
 
     <!-- POHLED 2: DETAIL PÍSNĚ -->
     <div id="view-detail" class="song-detail">
-        <h2 class="song-title" id="detail-title"></h2>
+        <div class="song-header-detail">
+            <h2 class="song-title" id="detail-title"></h2>
+            <div class="font-controls">
+                <button class="btn-ctrl" onclick="changeFontSize(-1)">A-</button>
+                <button class="btn-ctrl" onclick="autoFitFont()">Fit 📱</button>
+                <button class="btn-ctrl" onclick="changeFontSize(1)">A+</button>
+            </div>
+        </div>
         <pre id="detail-content"></pre>
     </div>
 
     <script>
         let allSongs = [];
         let currentFilteredSongs = [];
+        let currentFontSize = 14;
 
-        // Správa světlého / tmavého režimu
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
             const themeBtn = document.getElementById('btn-theme');
@@ -238,13 +261,9 @@
         }
 
         function toggleTheme(event) {
-            if (event) {
-                event.stopPropagation();
-            }
-            
+            if (event) event.stopPropagation();
             const body = document.body;
             const themeBtn = document.getElementById('btn-theme');
-            
             body.classList.toggle('light-theme');
             
             if (body.classList.contains('light-theme')) {
@@ -258,7 +277,6 @@
 
         async function fetchSongList() {
             const listContainer = document.getElementById('song-list');
-            
             try {
                 const pathParts = window.location.pathname.split('/').filter(p => p);
                 const hostnameParts = window.location.hostname.split('.');
@@ -295,7 +313,6 @@
                 }
 
                 songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
-
                 allSongs = songs;
                 renderSongList(allSongs);
 
@@ -306,39 +323,31 @@
 
         function cleanTitle(filename) {
             let name = filename.replace(/\.txt$/i, '').replace(/_/g, ' ').trim();
-            if (name === name.toUpperCase()) {
-                name = name.toLowerCase();
-            }
+            if (name === name.toUpperCase()) name = name.toLowerCase();
             return name.charAt(0).toUpperCase() + name.slice(1);
         }
 
         function formatTitle(filename) {
             const fullTitle = cleanTitle(filename);
             const parts = fullTitle.split('-');
-
             if (parts.length > 1) {
                 const songName = parts[0].trim();
                 const artistName = parts.slice(1).join('-').trim();
                 return `${songName} <span class="artist-name">- ${artistName}</span>`;
             }
-
             return fullTitle;
         }
 
         function renderSongList(songs) {
             currentFilteredSongs = songs;
             const listContainer = document.getElementById('song-list');
-            
             if (songs.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny. Nahrajte .txt soubory.</div>';
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny.</div>';
                 return;
             }
-
             listContainer.innerHTML = songs.map((song, index) => `
                 <div class="song-item" onclick="openSongByIndex(${index})">
-                    <div>
-                        <span class="song-number">${index + 1}.</span>${song.formattedName}
-                    </div>
+                    <div><span class="song-number">${index + 1}.</span>${song.formattedName}</div>
                 </div>
             `).join('');
         }
@@ -352,7 +361,6 @@
         function openSongByIndex(index) {
             const song = currentFilteredSongs[index];
             if (!song) return;
-
             history.pushState({ view: 'detail' }, '', '#detail');
             showDetailUI(song);
         }
@@ -361,7 +369,6 @@
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
             document.getElementById('detail-title').innerHTML = song.formattedName;
-
             openSongContent(song.url);
         }
 
@@ -373,11 +380,35 @@
                 const response = await fetch(decodeURIComponent(url));
                 const text = await response.text();
                 contentElem.innerHTML = highlightChords(text);
+                
+                // Přizpůsobit velikost písma okamžitě po vykreslení textu
+                setTimeout(autoFitFont, 50);
             } catch (err) {
                 contentElem.innerText = "Chyba při načítání písně.";
             }
 
             window.scrollTo(0, 0);
+        }
+
+        /* Automatické zmenšení textu tak, aby nejdelší řádek neskroloval do stran */
+        function autoFitFont() {
+            const contentElem = document.getElementById('detail-content');
+            let size = 16;
+            contentElem.style.fontSize = size + 'px';
+
+            const containerWidth = contentElem.clientWidth;
+            
+            // Zmenšuje velikost písma, dokud se šířka textu nevejde do viditelné oblasti
+            while (contentElem.scrollWidth > containerWidth && size > 7) {
+                size -= 0.5;
+                contentElem.style.fontSize = size + 'px';
+            }
+            currentFontSize = size;
+        }
+
+        function changeFontSize(delta) {
+            currentFontSize = Math.max(7, Math.min(24, currentFontSize + delta));
+            document.getElementById('detail-content').style.fontSize = currentFontSize + 'px';
         }
 
         function goBack() {
@@ -396,7 +427,6 @@
 
         function highlightChords(text) {
             const chordRegex = /\b([A-H][b#]?(m|maj|mi|dim|aug|sus)?[0-9]?)\b/g;
-            
             return text.split('\n').map(line => {
                 const isChordLine = line.replace(chordRegex, '').trim() === '';
                 if (isChordLine && line.trim() !== '') {
@@ -406,10 +436,8 @@
             }).join('\n');
         }
 
-        window.addEventListener('popstate', (event) => {
-            if (window.location.hash !== '#detail') {
-                showListUI();
-            }
+        window.addEventListener('popstate', () => {
+            if (window.location.hash !== '#detail') showListUI();
         });
 
         window.onload = () => {

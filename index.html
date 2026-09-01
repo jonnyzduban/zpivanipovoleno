@@ -84,9 +84,9 @@
             background-color: var(--card-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
         }
@@ -190,7 +190,7 @@
 
         .font-controls {
             display: flex;
-            gap: 4px;
+            gap: 6px;
         }
 
         pre {
@@ -200,7 +200,7 @@
             line-height: 1.35;
             letter-spacing: 0;
             word-spacing: 0;
-            white-space: pre; /* Zachovává původní strukturu bez zalamování */
+            white-space: pre;
             color: var(--text-color);
             margin: 0;
             -webkit-font-smoothing: antialiased;
@@ -236,7 +236,6 @@
             <h2 class="song-title" id="detail-title"></h2>
             <div class="font-controls">
                 <button class="btn-ctrl" onclick="changeFontSize(-1)">A-</button>
-                <button class="btn-ctrl" onclick="autoFitFont()">Fit 📱</button>
                 <button class="btn-ctrl" onclick="changeFontSize(1)">A+</button>
             </div>
         </div>
@@ -380,30 +379,12 @@
                 const response = await fetch(decodeURIComponent(url));
                 const text = await response.text();
                 contentElem.innerHTML = highlightChords(text);
-                
-                // Přizpůsobit velikost písma okamžitě po vykreslení textu
-                setTimeout(autoFitFont, 50);
+                contentElem.style.fontSize = currentFontSize + 'px';
             } catch (err) {
                 contentElem.innerText = "Chyba při načítání písně.";
             }
 
             window.scrollTo(0, 0);
-        }
-
-        /* Automatické zmenšení textu tak, aby nejdelší řádek neskroloval do stran */
-        function autoFitFont() {
-            const contentElem = document.getElementById('detail-content');
-            let size = 16;
-            contentElem.style.fontSize = size + 'px';
-
-            const containerWidth = contentElem.clientWidth;
-            
-            // Zmenšuje velikost písma, dokud se šířka textu nevejde do viditelné oblasti
-            while (contentElem.scrollWidth > containerWidth && size > 7) {
-                size -= 0.5;
-                contentElem.style.fontSize = size + 'px';
-            }
-            currentFontSize = size;
         }
 
         function changeFontSize(delta) {

@@ -176,12 +176,6 @@
             margin: 0;
         }
 
-        /* Menší rozestup pro samostatné textové řádky bez akordů */
-        .lyrics-line {
-            display: block;
-            line-height: 1.15;
-        }
-
         /* Akordy pouze s barevným odlišením písma bez podbarvení */
         .chord {
             color: var(--chord-color);
@@ -395,8 +389,8 @@
                 if (isChordLine && line.trim() !== '') {
                     return line.replace(chordRegex, '<span class="chord">$1</span>');
                 }
-                return `<span class="lyrics-line">${line}</span>`;
-            }).join('');
+                return line;
+            }).join('\n');
         }
 
         window.addEventListener('popstate', (event) => {

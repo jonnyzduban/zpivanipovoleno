@@ -71,7 +71,7 @@
         }
 
         .header-title {
-            font-size: 16px; /* Zmenšeno z 18px */
+            font-size: 18px; /* Původní */
             font-weight: bold;
             color: var(--accent-color);
             cursor: pointer;
@@ -91,9 +91,9 @@
             background-color: var(--card-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 3px 8px; /* Zmenšený padding */
+            padding: 4px 10px; /* Původní */
             border-radius: 6px;
-            font-size: 12px; /* Zmenšeno z 13px */
+            font-size: 13px; /* Původní */
             font-weight: bold;
             cursor: pointer;
             touch-action: manipulation;
@@ -103,9 +103,9 @@
             background-color: var(--accent-color);
             color: #fff;
             border: none;
-            padding: 3px 7px; /* Zmenšený padding */
+            padding: 4px 8px; /* Původní */
             border-radius: 20px;
-            font-size: 12px; /* Zmenšeno */
+            font-size: 13px; /* Původní */
             cursor: pointer;
             touch-action: manipulation;
         }
@@ -113,13 +113,13 @@
         /* Vyhledávání a Seznam */
         .search-box {
             width: 100%;
-            padding: 5px 8px; /* Zmenšený padding */
+            padding: 6px 10px; /* Původní */
             border-radius: 8px;
             border: 1px solid var(--border-color);
             background-color: var(--card-bg);
             color: var(--text-color);
-            font-size: 13px; /* Zmenšeno z 14px */
-            margin-bottom: 5px;
+            font-size: 14px; /* Původní */
+            margin-bottom: 6px;
             outline: none;
         }
 
@@ -131,10 +131,10 @@
 
         .song-item {
             background-color: var(--card-bg);
-            padding: 4px 8px; /* Zmenšený padding */
+            padding: 5px 10px; /* Původní */
             border-radius: 6px;
             border: 1px solid var(--border-color);
-            font-size: 13px; /* Zmenšeno z 14px */
+            font-size: 14px; /* Původní */
             font-weight: 500;
             cursor: pointer;
             display: flex;
@@ -153,7 +153,7 @@
         .song-item::after {
             content: "❯";
             color: #888;
-            font-size: 10px; /* Zmenšeno */
+            font-size: 11px; /* Původní */
             margin-left: 6px;
         }
 
@@ -161,41 +161,41 @@
             color: var(--accent-color);
             font-weight: normal;
             font-size: 0.85em;
-            margin-right: 6px;
+            margin-right: 8px;
             opacity: 0.7;
             display: inline-block;
-            width: 22px; /* Zúženo */
+            width: 24px;
             text-align: right;
         }
 
         .artist-name {
-            font-size: 0.8em; /* Zmenšeno */
+            font-size: 0.85em; /* Původní */
             color: #888;
             font-weight: normal;
         }
 
-        /* Varování */
+        /* Varování (zmenšeno a méně výrazné) */
         .warning-banner {
-            margin-top: 10px; /* Zmenšený horní okraj */
+            margin-top: 12px;
             background-color: var(--card-bg);
-            border: 1px dashed #ff4444;
-            color: var(--text-color);
-            padding: 8px 10px; /* Zmenšený padding */
-            border-radius: 8px;
+            border: 1px dashed rgba(255, 68, 68, 0.5); /* Lehčí okraj */
+            color: #aaa; /* Tlumenější barva textu */
+            padding: 6px 10px; /* Menší padding */
+            border-radius: 6px;
             text-align: center;
-            font-size: 12px; /* Zmenšeno z 13.5px */
+            font-size: 11.5px; /* Výrazně zmenšeno */
             line-height: 1.3;
         }
 
         .warning-banner strong {
-            color: #ff4444;
+            color: #ff6666; /* Mírně tlumenější červená */
         }
 
         /* Detail Písně */
         .song-detail {
             display: none;
             background-color: var(--card-bg);
-            padding: 8px; /* Zmenšený padding */
+            padding: 10px; /* Původní */
             border-radius: 10px;
             border: 1px solid var(--border-color);
             overflow-x: auto;
@@ -205,15 +205,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
-            padding-bottom: 4px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
             border-bottom: 1px solid var(--border-color);
             -webkit-user-select: none;
             user-select: none;
         }
 
         .song-title {
-            font-size: 15px; /* Zmenšeno z 18px pro lepší vejití na displej */
+            font-size: 18px; /* Původní */
             font-weight: 700;
             color: var(--accent-color);
             margin: 0;
@@ -225,14 +225,14 @@
 
         .font-controls {
             display: flex;
-            gap: 4px;
+            gap: 6px;
         }
 
         pre {
             font-family: 'Roboto Mono', Consolas, monospace;
-            font-size: 13px; /* Výchozí velikost textu písně mírně snížena z 14px */
+            font-size: 14px; /* Původní */
             font-weight: 400;
-            line-height: 1.3;
+            line-height: 1.35;
             letter-spacing: 0;
             word-spacing: 0;
             white-space: pre;
@@ -247,18 +247,18 @@
             background-color: transparent;
         }
 
-        /* Patička */
+        /* Patička (původní) */
         footer {
             text-align: center;
-            padding: 15px 0 10px 0;
-            margin-top: 15px;
-            font-size: 13px; /* Zmenšeno z 15px */
+            padding: 20px 0 12px 0;
+            margin-top: 25px;
+            font-size: 15px;
             font-weight: 500;
             border-top: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         body:not(.light-theme) footer {
@@ -282,8 +282,8 @@
         }
 
         footer svg {
-            width: 17px; /* Zmenšené ikony */
-            height: 17px;
+            width: 20px;
+            height: 20px;
         }
     </style>
 </head>
@@ -301,10 +301,10 @@
         <div id="view-list">
             <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
             <div class="song-list" id="song-list">
-                <div style="text-align: center; color: #888; padding: 15px; font-size: 13px;">Načítám seznam písní...</div>
+                <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
             </div>
             
-            <!-- VAROVÁNÍ -->
+            <!-- VAROVÁNÍ (zmenšené) -->
             <div class="warning-banner">
                 <strong>Varování:</strong> 🚫 Anděl, Stánky a Tři kříže mají zákaz. Zahraji, pokud vytáhneš peněženku – 1000 Kč za píseň. 💸🎸
             </div>
@@ -325,7 +325,7 @@
 
     <footer>
         <a href="https://www.instagram.com/jonnyzduban/" target="_blank" rel="noopener noreferrer" title="Instagram">
-            <svg viewBox="0 0 24 24" width="17" height="17">
+            <svg viewBox="0 0 24 24" width="20" height="20">
                 <defs>
                     <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
                         <stop offset="0%" stop-color="#fd5" />
@@ -346,7 +346,7 @@
     <script>
         let allSongs = [];
         let currentFilteredSongs = [];
-        let currentFontSize = 13; // Snížena i výchozí hodnota pro javascript
+        let currentFontSize = 14;
         let wakeLock = null;
 
         function initTheme() {
@@ -418,7 +418,7 @@
                 renderSongList(allSongs);
 
             } catch (err) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:15px; font-size:13px;">Chyba při načítání souborů.</div>';
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání souborů.</div>';
             }
         }
 
@@ -443,7 +443,7 @@
             currentFilteredSongs = songs;
             const listContainer = document.getElementById('song-list');
             if (songs.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:15px; font-size:13px;">Žádné písně nenalezeny.</div>';
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny.</div>';
                 return;
             }
             listContainer.innerHTML = songs.map((song, index) => `
@@ -528,7 +528,7 @@
 
         function autoFitFont() {
             const contentElem = document.getElementById('detail-content');
-            let size = 14; // Startovní zmenšená velikost pro automatické přizpůsobení
+            let size = 16;
             contentElem.style.fontSize = size + 'px';
 
             const containerWidth = contentElem.clientWidth;

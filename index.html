@@ -122,7 +122,7 @@
             touch-action: manipulation;
         }
 
-        .btn-mode.admin {
+        .btn-mode.active {
             border-color: var(--accent-color);
             color: var(--accent-color);
         }
@@ -324,6 +324,11 @@
             width: 20px;
             height: 20px;
         }
+
+        .secret-trigger {
+            cursor: pointer;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
@@ -332,7 +337,7 @@
         <header>
             <div id="header-title" class="header-title" onclick="goBack()">🔥 Zpívání povoleno 2.0</div>
             <div class="header-controls">
-                <button class="btn-mode" id="btn-mode" onclick="toggleAdminMode()" title="Přepnout režim sdílení">👤 Účastník</button>
+                <button class="btn-mode" id="btn-mode" onclick="toggleSharedMode()" title="Přepnout režim sdílení">Režim: Klasický</button>
                 <button class="btn-theme" id="btn-theme" onclick="toggleTheme(event)" title="Přepnout motiv">☀️</button>
             </div>
         </header>
@@ -382,7 +387,7 @@
             </svg>
         </a>
         <a href="https://www.instagram.com/jonnyzduban/" target="_blank" rel="noopener noreferrer" title="Instagram">
-            <span>Jonnyzduban</span>
+            <span>Jonnyzduban<span class="secret-trigger" onclick="secretAdminLogin()">.</span></span>
         </a>
     </footer>
 
@@ -391,6 +396,7 @@
         let currentFilteredSongs = [];
         let currentFontSize = 14;
         let wakeLock = null;
+        let isSharedMode = localStorage.getItem('isSharedMode') === 'true';
         let isAdmin = localStorage.getItem('isAdmin') === 'true';
         let channel = null;
 
@@ -398,15 +404,15 @@
             channel = new BroadcastChannel('zpivani_povoleno_sync');
             channel.onmessage = (event) => {
                 if (event.data && event.data.type === 'CHANGE_SONG') {
-                    // Účastník přijme příkaz od admina (pokud není sám adminem)
-                    if (!isAdmin) {
+                    // Účastník ve sdíleném režimu přijme píseň od admina
+                    if (isSharedMode && !isAdmin) {
                         const songIndex = allSongs.findIndex(s => s.url === event.data.songUrl);
                         if (songIndex !== -1) {
                             openSongByIndex(songIndex, false);
                         }
                     }
                 } else if (event.data && event.data.type === 'GO_BACK') {
-                    if (!isAdmin) {
+                    if (isSharedMode && !isAdmin) {
                         showListUI(false);
                     }
                 }
@@ -417,9 +423,8 @@
 
         function initApp() {
             initTheme();
-            updateAdminButtonUI();
+            updateModeButtonUI();
 
-            // Okamžité načtení z cache pro bleskové zobrazení
             const cachedSongs = localStorage.getItem('cached_songs');
             if (cachedSongs) {
                 try {
@@ -428,7 +433,6 @@
                 } catch (e) {}
             }
 
-            // Na pozadí (nebo čerstvě) aktualizujeme seznam
             fetchSongList();
         }
 
@@ -459,20 +463,45 @@
             }
         }
 
-        function toggleAdminMode() {
-            isAdmin = !isAdmin;
-            localStorage.setItem('isAdmin', isAdmin);
-            updateAdminButtonUI();
+        function toggleSharedMode() {
+            isSharedMode = !isSharedMode;
+            localStorage.setItem('isSharedMode', isSharedMode);
+            updateModeButtonUI();
         }
 
-        function updateAdminButtonUI() {
+        function updateModeButtonUI() {
             const btn = document.getElementById('btn-mode');
-            if (isAdmin) {
-                btn.innerText = '👑 Admin';
-                btn.classList.add('admin');
+            if (isSharedMode) {
+                const roleText = isAdmin ? ' (Admin)' : '';
+                btn.innerText = `Režim: Sdílený${roleText}`;
+                btn.classList.add('active');
             } else {
-                btn.innerText = '👤 Účastník';
-                btn.classList.remove('admin');
+                btn.innerText = 'Režim: Klasický';
+                btn.classList.remove('active');
+            }
+        }
+
+        function secretAdminLogin() {
+            if (isAdmin) {
+                if (confirm('Chcete se odhlásit z administrátorského účtu?')) {
+                    isAdmin = false;
+                    localStorage.setItem('isAdmin', 'false');
+                    updateModeButtonUI();
+                    alert('Byl jste odhlášen z admin účtu.');
+                }
+                return;
+            }
+
+            const password = prompt('Zadejte administrátorské heslo:');
+            if (password === '1234') {
+                isAdmin = true;
+                isSharedMode = true; // Automaticky zapne sdílený režim pro admina
+                localStorage.setItem('isAdmin', 'true');
+                localStorage.setItem('isSharedMode', 'true');
+                updateModeButtonUI();
+                alert('Úspěšně přihlášen jako Admin! Nyní můžete přepínat písně ostatním.');
+            } else if (password !== null) {
+                alert('Nesprávné heslo!');
             }
         }
 
@@ -580,8 +609,8 @@
             const song = currentFilteredSongs[index] || allSongs[index];
             if (!song) return;
 
-            // Pokud je uživatel admin a akce je vyvolána jím, pošle se zpráva ostatním
-            if (isAdmin && broadcast && channel) {
+            // Pokud je zapnutý sdílený režim a uživatel je admin, pošle se zpráva ostatním
+            if (isSharedMode && isAdmin && broadcast && channel) {
                 channel.postMessage({ type: 'CHANGE_SONG', songUrl: song.url });
             }
 
@@ -656,16 +685,13 @@
         }
 
         function goBack() {
-            if (isAdmin && channel) {
+            if (isSharedMode && isAdmin && channel) {
                 channel.postMessage({ type: 'GO_BACK' });
             }
             showListUI(true);
         }
 
         async function showListUI(broadcast = false) {
-            if (broadcast && isAdmin && channel) {
-                // zajištěno v goBack, nebo pokud volá historie
-            }
             await releaseWakeLock();
             resetSearch();
 

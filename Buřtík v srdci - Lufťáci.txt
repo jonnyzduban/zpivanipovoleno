@@ -1,22 +1,22 @@
 Intro: Ami
 
-Am                                    Dm
+Ami                        Dm             Ami
 Kam tenhle svět pádí, kde staví tenhle vlak
-F                    H7                    E7
+     F         Am         H7       E7
 kam mizí moje mládí, kam odcházejí kamarádi
-Ami                                                 Dm
+Ami                          Dm
 už je dávno pryč ten starej svět, kdy maso bylo maso
-F                   E             Am       G
+F              E             Am       G
 muž byl mužem, žena ženou a oheň nás hřál
 
 Ref.
-C                            F
+C              F
 Buřtík v srdci ve dne v noci
-C       G    F
+C            G    
 rád ho pojídám
-C                            
+C              F               
 Buřtík v srdci ve dne v noci
-C           G     C
+C     G        C
 musím ho sníst sám
 
 Ami
@@ -27,19 +27,15 @@ pryč jsou časy, kdy jsme mohli
 v klidu tady žít
 
 Ref.
-C                            F
-Buřtík v srdci ve dne v noci...
 
-solo flute in ami
-
-Krofián recituje:
+Recitace:
 Už nehoníme se za sny, je to všechno mastný
 seš poslední, tak zhasni - já jdu tiše pít
 vzpomínej na to, co znáš od mala
 už ani ta budoucnost není co bejvala
+
 jen jediná je jistota, jen jediná je jistota,
-.....jen jediná je jistota,..... jen jediná je jistota
+jen jediná je jistota,jen jediná je jistota
 
 Ref.
-C                            F
-Buřtík v srdci ve dne v noci...
+

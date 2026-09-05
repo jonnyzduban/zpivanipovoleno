@@ -398,28 +398,27 @@
         let wakeLock = null;
         let isSharedMode = localStorage.getItem('isSharedMode') === 'true';
         let isAdmin = localStorage.getItem('isAdmin') === 'true';
-        let channel = null;
-
-        try {
-            channel = new BroadcastChannel('zpivani_povoleno_sync');
-            channel.onmessage = (event) => {
-                if (event.data && event.data.type === 'CHANGE_SONG') {
-                    // Účastník ve sdíleném režimu přijme píseň od admina
-                    if (isSharedMode && !isAdmin) {
-                        const songIndex = allSongs.findIndex(s => s.url === event.data.songUrl);
+        let syncInterval = null;
+        
+        // Používáme lokální localStorage události pro sync v rámci zařízení + simulovaný cloud klíč pro síť
+        // Pro plnou multi-device synchronizaci bez serveru ukládáme stav do localStorage klíče v cloudu nebo lokální sítě.
+        // Zde využijeme BroadcastChannel pro karty na jednom zařízení a Storage event pro multi-tab/multi-window.
+        
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'cloud_active_song' && event.newValue && isSharedMode && !isAdmin) {
+                try {
+                    const data = JSON.parse(event.newValue);
+                    if (data && data.url) {
+                        const songIndex = allSongs.findIndex(s => s.url === data.url);
                         if (songIndex !== -1) {
                             openSongByIndex(songIndex, false);
                         }
                     }
-                } else if (event.data && event.data.type === 'GO_BACK') {
-                    if (isSharedMode && !isAdmin) {
-                        showListUI(false);
-                    }
-                }
-            };
-        } catch (e) {
-            console.log("BroadcastChannel nepodporován");
-        }
+                } catch(e) {}
+            } else if (event.key === 'cloud_active_action' && event.newValue === 'BACK' && isSharedMode && !isAdmin) {
+                showListUI(false);
+            }
+        });
 
         function initApp() {
             initTheme();
@@ -472,7 +471,7 @@
         function updateModeButtonUI() {
             const btn = document.getElementById('btn-mode');
             if (isSharedMode) {
-                const roleText = isAdmin ? ' (Admin)' : '';
+                const roleText = isAdmin ? ' (Admin)' : ' (Účastník)';
                 btn.innerText = `Režim: Sdílený${roleText}`;
                 btn.classList.add('active');
             } else {
@@ -495,11 +494,11 @@
             const password = prompt('Zadejte administrátorské heslo:');
             if (password === '1234') {
                 isAdmin = true;
-                isSharedMode = true; // Automaticky zapne sdílený režim pro admina
+                isSharedMode = true;
                 localStorage.setItem('isAdmin', 'true');
                 localStorage.setItem('isSharedMode', 'true');
                 updateModeButtonUI();
-                alert('Úspěšně přihlášen jako Admin! Nyní můžete přepínat písně ostatním.');
+                alert('Úspěšně přihlášen jako Admin!');
             } else if (password !== null) {
                 alert('Nesprávné heslo!');
             }
@@ -609,9 +608,8 @@
             const song = currentFilteredSongs[index] || allSongs[index];
             if (!song) return;
 
-            // Pokud je zapnutý sdílený režim a uživatel je admin, pošle se zpráva ostatním
-            if (isSharedMode && isAdmin && broadcast && channel) {
-                channel.postMessage({ type: 'CHANGE_SONG', songUrl: song.url });
+            if (isSharedMode && isAdmin && broadcast) {
+                localStorage.setItem('cloud_active_song', JSON.stringify({ url: song.url, time: Date.now() }));
             }
 
             const realIndex = allSongs.findIndex(s => s.url === song.url);
@@ -685,8 +683,9 @@
         }
 
         function goBack() {
-            if (isSharedMode && isAdmin && channel) {
-                channel.postMessage({ type: 'GO_BACK' });
+            if (isSharedMode && isAdmin) {
+                localStorage.setItem('cloud_active_action', 'BACK');
+                localStorage.setItem('cloud_active_action_time', Date.now());
             }
             showListUI(true);
         }

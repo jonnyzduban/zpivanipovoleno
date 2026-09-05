@@ -110,17 +110,52 @@
             touch-action: manipulation;
         }
 
+        .btn-mode {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .btn-mode.admin {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
         /* Vyhledávání a Seznam */
+        .search-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
         .search-box {
-            width: 100%;
+            flex: 1;
             padding: 6px 10px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             background-color: var(--card-bg);
             color: var(--text-color);
             font-size: 14px;
-            margin-bottom: 6px;
             outline: none;
+        }
+
+        .btn-random {
+            background-color: var(--card-bg);
+            color: var(--accent-color);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            touch-action: manipulation;
         }
 
         .song-list {
@@ -174,7 +209,7 @@
             font-weight: normal;
         }
 
-        /* Varování vždy na jednom řádku, zmenšené písmo pro jistotu */
+        /* Varování */
         .warning-banner {
             margin-top: 5px;
             margin-bottom: 5px;
@@ -297,21 +332,28 @@
         <header>
             <div id="header-title" class="header-title" onclick="goBack()">🔥 Zpívání povoleno 2.0</div>
             <div class="header-controls">
+                <button class="btn-mode" id="btn-mode" onclick="toggleAdminMode()" title="Přepnout režim sdílení">👤 Účastník</button>
                 <button class="btn-theme" id="btn-theme" onclick="toggleTheme(event)" title="Přepnout motiv">☀️</button>
             </div>
         </header>
 
+        <!-- POHLED 1: SEZNAM PÍSNÍ -->
         <div id="view-list">
-            <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
+            <div class="search-row">
+                <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
+                <button class="btn-random" onclick="selectRandomSong()">🎲 Náhodná</button>
+            </div>
             <div class="song-list" id="song-list">
                 <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
             </div>
             
+            <!-- VAROVÁNÍ -->
             <div class="warning-banner">
-                <strong>Varování:</strong> Anděl, Stánky a Tři kříže mají ban!&nbsp;&nbsp;Zrušení zákazu 1 000 Kč/píseň ✌️
+                <strong>Varování:</strong> Anděl, Stánky a Tři kříže mají ban! &nbsp; Zrušení zákazu 1 000 Kč/píseň ✌️
             </div>
         </div>
 
+        <!-- POHLED 2: DETAIL PÍSNĚ -->
         <div id="view-detail" class="song-detail">
             <div class="song-header-detail">
                 <h2 class="song-title" id="detail-title"></h2>
@@ -349,6 +391,46 @@
         let currentFilteredSongs = [];
         let currentFontSize = 14;
         let wakeLock = null;
+        let isAdmin = localStorage.getItem('isAdmin') === 'true';
+        let channel = null;
+
+        try {
+            channel = new BroadcastChannel('zpivani_povoleno_sync');
+            channel.onmessage = (event) => {
+                if (event.data && event.data.type === 'CHANGE_SONG') {
+                    // Účastník přijme příkaz od admina (pokud není sám adminem)
+                    if (!isAdmin) {
+                        const songIndex = allSongs.findIndex(s => s.url === event.data.songUrl);
+                        if (songIndex !== -1) {
+                            openSongByIndex(songIndex, false);
+                        }
+                    }
+                } else if (event.data && event.data.type === 'GO_BACK') {
+                    if (!isAdmin) {
+                        showListUI(false);
+                    }
+                }
+            };
+        } catch (e) {
+            console.log("BroadcastChannel nepodporován");
+        }
+
+        function initApp() {
+            initTheme();
+            updateAdminButtonUI();
+
+            // Okamžité načtení z cache pro bleskové zobrazení
+            const cachedSongs = localStorage.getItem('cached_songs');
+            if (cachedSongs) {
+                try {
+                    allSongs = JSON.parse(cachedSongs);
+                    renderSongList(allSongs);
+                } catch (e) {}
+            }
+
+            // Na pozadí (nebo čerstvě) aktualizujeme seznam
+            fetchSongList();
+        }
 
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
@@ -374,6 +456,23 @@
             } else {
                 localStorage.setItem('theme', 'dark');
                 themeBtn.innerText = '☀️';
+            }
+        }
+
+        function toggleAdminMode() {
+            isAdmin = !isAdmin;
+            localStorage.setItem('isAdmin', isAdmin);
+            updateAdminButtonUI();
+        }
+
+        function updateAdminButtonUI() {
+            const btn = document.getElementById('btn-mode');
+            if (isAdmin) {
+                btn.innerText = '👑 Admin';
+                btn.classList.add('admin');
+            } else {
+                btn.innerText = '👤 Účastník';
+                btn.classList.remove('admin');
             }
         }
 
@@ -414,12 +513,19 @@
                     }
                 }
 
-                songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
-                allSongs = songs;
-                renderSongList(allSongs);
+                if (songs.length > 0) {
+                    songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
+                    allSongs = songs;
+                    localStorage.setItem('cached_songs', JSON.stringify(songs));
+                    renderSongList(allSongs);
+                } else if (allSongs.length === 0) {
+                    listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny.</div>';
+                }
 
             } catch (err) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání souborů.</div>';
+                if (allSongs.length === 0) {
+                    listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání souborů.</div>';
+                }
             }
         }
 
@@ -443,12 +549,10 @@
         function renderSongList(songs) {
             currentFilteredSongs = songs;
             const listContainer = document.getElementById('song-list');
-            if (songs.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny.</div>';
-                return;
-            }
+            if (songs.length === 0) return;
+            
             listContainer.innerHTML = songs.map((song, index) => `
-                <div class="song-item" onclick="openSongByIndex(${index})">
+                <div class="song-item" onclick="openSongByIndex(${index}, true)">
                     <div><span class="song-number">${index + 1}.</span>${song.formattedName}</div>
                 </div>
             `).join('');
@@ -462,17 +566,28 @@
 
         function resetSearch() {
             const searchInput = document.getElementById('search');
-            if (searchInput) {
-                searchInput.value = '';
-            }
+            if (searchInput) searchInput.value = '';
             renderSongList(allSongs);
         }
 
-        function openSongByIndex(index) {
-            const song = currentFilteredSongs[index];
+        function selectRandomSong() {
+            if (allSongs.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * allSongs.length);
+            openSongByIndex(randomIndex, true);
+        }
+
+        function openSongByIndex(index, broadcast = true) {
+            const song = currentFilteredSongs[index] || allSongs[index];
             if (!song) return;
+
+            // Pokud je uživatel admin a akce je vyvolána jím, pošle se zpráva ostatním
+            if (isAdmin && broadcast && channel) {
+                channel.postMessage({ type: 'CHANGE_SONG', songUrl: song.url });
+            }
+
+            const realIndex = allSongs.findIndex(s => s.url === song.url);
             history.pushState({ view: 'detail' }, '', '#detail');
-            showDetailUI(song, index + 1);
+            showDetailUI(song, realIndex !== -1 ? realIndex + 1 : index + 1);
         }
 
         async function showDetailUI(song, songNumber) {
@@ -481,7 +596,6 @@
             document.getElementById('detail-title').innerHTML = `<span style="color: var(--accent-color);">${songNumber}.</span> ${song.formattedName}`;
             
             await requestWakeLock();
-
             openSongContent(song.url);
         }
 
@@ -498,7 +612,7 @@
                 const text = await response.text();
                 contentElem.innerHTML = highlightChords(text);
                 
-                setTimeout(autoFitFont, 50);
+                setTimeout(autoFitFont, 20);
             } catch (err) {
                 contentElem.innerText = "Chyba při načítání písně.";
             }
@@ -510,9 +624,7 @@
             if ('wakeLock' in navigator) {
                 try {
                     wakeLock = await navigator.wakeLock.request('screen');
-                } catch (err) {
-                    console.log(`${err.name}, ${err.message}`);
-                }
+                } catch (err) {}
             }
         }
 
@@ -521,9 +633,7 @@
                 try {
                     await wakeLock.release();
                     wakeLock = null;
-                } catch (err) {
-                    console.log(`${err.name}, ${err.message}`);
-                }
+                } catch (err) {}
             }
         }
 
@@ -531,7 +641,6 @@
             const contentElem = document.getElementById('detail-content');
             let size = 16;
             contentElem.style.fontSize = size + 'px';
-
             const containerWidth = contentElem.clientWidth;
             
             while (contentElem.scrollWidth > containerWidth && size > 7) {
@@ -547,16 +656,17 @@
         }
 
         function goBack() {
-            if (window.location.hash === '#detail') {
-                history.back();
-            } else {
-                showListUI();
+            if (isAdmin && channel) {
+                channel.postMessage({ type: 'GO_BACK' });
             }
+            showListUI(true);
         }
 
-        async function showListUI() {
+        async function showListUI(broadcast = false) {
+            if (broadcast && isAdmin && channel) {
+                // zajištěno v goBack, nebo pokud volá historie
+            }
             await releaseWakeLock();
-
             resetSearch();
 
             document.getElementById('view-list').style.display = 'block';
@@ -578,7 +688,7 @@
 
         window.addEventListener('popstate', () => {
             if (window.location.hash !== '#detail') {
-                showListUI();
+                showListUI(false);
             }
         });
 
@@ -589,8 +699,7 @@
         });
 
         window.onload = () => {
-            initTheme();
-            fetchSongList();
+            initApp();
         };
     </script>
 </body>

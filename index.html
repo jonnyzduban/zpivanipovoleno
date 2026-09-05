@@ -350,8 +350,15 @@
         </div>
     </div>
 
-    <footer>
-        <a href="https://www.instagram.com/jonnyzduban/" target="_blank" rel="noopener noreferrer" title="Instagram">
+    <footer style="position: relative;">
+        <a href="https://www.instagram.com/jonnyzduban/" 
+           target="_blank" 
+           rel="noopener noreferrer" 
+           title="Instagram"
+           onmousedown="startSecretTimer()"
+           onmouseup="cancelSecretTimer()"
+           ontouchstart="startSecretTimer()"
+           ontouchend="cancelSecretTimer()">
             <svg viewBox="0 0 24 24" width="20" height="20">
                 <defs>
                     <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
@@ -375,6 +382,7 @@
         let currentFilteredSongs = [];
         let currentFontSize = 14;
         let wakeLock = null;
+        let secretTimer = null;
 
         function initApp() {
             initTheme();
@@ -614,6 +622,65 @@
                 }
                 return line.replace(chordRegex, '<span class="chord">$1</span>');
             }).join('\n');
+        }
+
+        function startSecretTimer() {
+            secretTimer = setTimeout(() => {
+                loadSecretSongs();
+            }, 500);
+        }
+
+        function cancelSecretTimer() {
+            if (secretTimer) {
+                clearTimeout(secretTimer);
+                secretTimer = null;
+            }
+        }
+
+        async function loadSecretSongs() {
+            const listContainer = document.getElementById('song-list');
+            listContainer.innerHTML = '<div style="text-align: center; color: var(--accent-color); padding: 20px;">🔓 Načítám tajný repertoár...</div>';
+            
+            try {
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                const hostnameParts = window.location.hostname.split('.');
+                let songs = [];
+
+                if (window.location.hostname.includes('github.io')) {
+                    const user = hostnameParts[0];
+                    const repo = pathParts[0] || '';
+                    const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/secret`;
+
+                    const response = await fetch(apiUrl);
+                    if (response.ok) {
+                        const files = await response.json();
+                        songs = files
+                            .filter(file => file.name.endsWith('.txt'))
+                            .map(file => ({
+                                formattedName: "🔒 " + formatTitle(file.name),
+                                rawName: cleanTitle(file.name),
+                                url: file.download_url
+                            }));
+                    }
+                }
+
+                if (songs.length > 0) {
+                    songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
+                    currentFilteredSongs = songs;
+                    listContainer.innerHTML = songs.map((song, index) => `
+                        <div class="song-item" onclick="openSongByIndex(${index})" style="border-color: var(--accent-color);">
+                            <div><span class="song-number">${index + 1}.</span>${song.formattedName}</div>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('search').value = '';
+                    window.scrollTo(0, 0);
+                } else {
+                    listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné tajné písně nenalezeny.</div>';
+                }
+            } catch (err) {
+                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání tajných písní.</div>';
+            }
         }
 
         window.addEventListener('popstate', () => {

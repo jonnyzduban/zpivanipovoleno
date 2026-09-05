@@ -174,11 +174,12 @@
             font-weight: normal;
         }
 
-        /* Varování (zmenšeno, méně výrazné, bez emoji zákazu) */
+        /* Varování (bez rámečku, bez emoji, sjednocené mezery) */
         .warning-banner {
-            margin-top: 12px;
+            margin-top: 6px;
+            margin-bottom: 6px;
             background-color: var(--card-bg);
-            border: 1px dashed rgba(255, 68, 68, 0.5);
+            border: none;
             color: #aaa;
             padding: 6px 10px;
             border-radius: 6px;
@@ -250,8 +251,8 @@
         /* Patička */
         footer {
             text-align: center;
-            padding: 20px 0 12px 0;
-            margin-top: 25px;
+            padding: 6px 0 12px 0;
+            margin-top: 0;
             font-size: 15px;
             font-weight: 500;
             border-top: 1px solid var(--border-color);
@@ -304,10 +305,10 @@
                 <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
             </div>
             
-            <!-- VAROVÁNÍ (bez emoji zákazu, zrušení zákazu na dalším řádku) -->
+            <!-- VAROVÁNÍ -->
             <div class="warning-banner">
                 <strong>Varování:</strong> Anděl, Stánky a Tři kříže mají ban!<br>
-                Zrušení zákazu – 1000 Kč za píseň. 💸🎸
+                Zrušení zákazu – 1000 Kč za píseň.
             </div>
         </div>
 

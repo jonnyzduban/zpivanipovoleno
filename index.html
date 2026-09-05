@@ -282,7 +282,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 15px;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         body:not(.light-theme) footer {
@@ -308,6 +310,18 @@
         footer svg {
             width: 20px;
             height: 20px;
+        }
+
+        /* Pravá část patičky pro tajný vstup */
+        .secret-trigger-area {
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0.4;
+            padding: 5px;
+            transition: opacity 0.2s;
+        }
+        .secret-trigger-area:hover {
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -350,15 +364,11 @@
         </div>
     </div>
 
-    <footer style="position: relative;">
+    <footer>
         <a href="https://www.instagram.com/jonnyzduban/" 
            target="_blank" 
            rel="noopener noreferrer" 
-           title="Instagram"
-           onmousedown="startSecretTimer()"
-           onmouseup="cancelSecretTimer()"
-           ontouchstart="startSecretTimer()"
-           ontouchend="cancelSecretTimer()">
+           title="Instagram">
             <svg viewBox="0 0 24 24" width="20" height="20">
                 <defs>
                     <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
@@ -375,6 +385,16 @@
         <a href="https://www.instagram.com/jonnyzduban/" target="_blank" rel="noopener noreferrer" title="Instagram">
             <span>Jonnyzduban.</span>
         </a>
+        
+        <!-- PROSTOR NAPRAVO OD INSTAGRAMU PRO TAJNÝ SEZNAM -->
+        <div class="secret-trigger-area"
+             onmousedown="startSecretTimer()"
+             onmouseup="cancelSecretTimer()"
+             ontouchstart="startSecretTimer()"
+             ontouchend="cancelSecretTimer()"
+             title="Tajná sekce">
+            🔒
+        </div>
     </footer>
 
     <script>
@@ -627,7 +647,7 @@
         function startSecretTimer() {
             secretTimer = setTimeout(() => {
                 loadSecretSongs();
-            }, 500);
+            }, 3000); // Nastaveno na 3 vteřiny
         }
 
         function cancelSecretTimer() {

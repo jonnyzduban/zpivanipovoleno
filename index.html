@@ -71,7 +71,7 @@
         }
 
         .header-title {
-            font-size: 18px;
+            font-size: 16px; /* Zmenšeno z 18px */
             font-weight: bold;
             color: var(--accent-color);
             cursor: pointer;
@@ -91,9 +91,9 @@
             background-color: var(--card-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 4px 10px;
+            padding: 3px 8px; /* Zmenšený padding */
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 12px; /* Zmenšeno z 13px */
             font-weight: bold;
             cursor: pointer;
             touch-action: manipulation;
@@ -103,9 +103,9 @@
             background-color: var(--accent-color);
             color: #fff;
             border: none;
-            padding: 4px 8px;
+            padding: 3px 7px; /* Zmenšený padding */
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 12px; /* Zmenšeno */
             cursor: pointer;
             touch-action: manipulation;
         }
@@ -113,13 +113,13 @@
         /* Vyhledávání a Seznam */
         .search-box {
             width: 100%;
-            padding: 6px 10px;
+            padding: 5px 8px; /* Zmenšený padding */
             border-radius: 8px;
             border: 1px solid var(--border-color);
             background-color: var(--card-bg);
             color: var(--text-color);
-            font-size: 14px;
-            margin-bottom: 6px;
+            font-size: 13px; /* Zmenšeno z 14px */
+            margin-bottom: 5px;
             outline: none;
         }
 
@@ -131,10 +131,10 @@
 
         .song-item {
             background-color: var(--card-bg);
-            padding: 5px 10px;
+            padding: 4px 8px; /* Zmenšený padding */
             border-radius: 6px;
             border: 1px solid var(--border-color);
-            font-size: 14px;
+            font-size: 13px; /* Zmenšeno z 14px */
             font-weight: 500;
             cursor: pointer;
             display: flex;
@@ -153,7 +153,7 @@
         .song-item::after {
             content: "❯";
             color: #888;
-            font-size: 11px;
+            font-size: 10px; /* Zmenšeno */
             margin-left: 6px;
         }
 
@@ -161,30 +161,30 @@
             color: var(--accent-color);
             font-weight: normal;
             font-size: 0.85em;
-            margin-right: 8px;
+            margin-right: 6px;
             opacity: 0.7;
             display: inline-block;
-            width: 24px;
+            width: 22px; /* Zúženo */
             text-align: right;
         }
 
         .artist-name {
-            font-size: 0.85em;
+            font-size: 0.8em; /* Zmenšeno */
             color: #888;
             font-weight: normal;
         }
 
         /* Varování */
         .warning-banner {
-            margin-top: 15px;
+            margin-top: 10px; /* Zmenšený horní okraj */
             background-color: var(--card-bg);
             border: 1px dashed #ff4444;
             color: var(--text-color);
-            padding: 12px 14px;
+            padding: 8px 10px; /* Zmenšený padding */
             border-radius: 8px;
             text-align: center;
-            font-size: 13.5px;
-            line-height: 1.4;
+            font-size: 12px; /* Zmenšeno z 13.5px */
+            line-height: 1.3;
         }
 
         .warning-banner strong {
@@ -195,7 +195,7 @@
         .song-detail {
             display: none;
             background-color: var(--card-bg);
-            padding: 10px;
+            padding: 8px; /* Zmenšený padding */
             border-radius: 10px;
             border: 1px solid var(--border-color);
             overflow-x: auto;
@@ -205,15 +205,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
             border-bottom: 1px solid var(--border-color);
             -webkit-user-select: none;
             user-select: none;
         }
 
         .song-title {
-            font-size: 18px;
+            font-size: 15px; /* Zmenšeno z 18px pro lepší vejití na displej */
             font-weight: 700;
             color: var(--accent-color);
             margin: 0;
@@ -225,14 +225,14 @@
 
         .font-controls {
             display: flex;
-            gap: 6px;
+            gap: 4px;
         }
 
         pre {
             font-family: 'Roboto Mono', Consolas, monospace;
-            font-size: 14px;
+            font-size: 13px; /* Výchozí velikost textu písně mírně snížena z 14px */
             font-weight: 400;
-            line-height: 1.35;
+            line-height: 1.3;
             letter-spacing: 0;
             word-spacing: 0;
             white-space: pre;
@@ -250,15 +250,15 @@
         /* Patička */
         footer {
             text-align: center;
-            padding: 20px 0 12px 0;
-            margin-top: 25px;
-            font-size: 15px;
+            padding: 15px 0 10px 0;
+            margin-top: 15px;
+            font-size: 13px; /* Zmenšeno z 15px */
             font-weight: 500;
             border-top: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         body:not(.light-theme) footer {
@@ -282,8 +282,8 @@
         }
 
         footer svg {
-            width: 20px;
-            height: 20px;
+            width: 17px; /* Zmenšené ikony */
+            height: 17px;
         }
     </style>
 </head>
@@ -301,7 +301,7 @@
         <div id="view-list">
             <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
             <div class="song-list" id="song-list">
-                <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
+                <div style="text-align: center; color: #888; padding: 15px; font-size: 13px;">Načítám seznam písní...</div>
             </div>
             
             <!-- VAROVÁNÍ -->
@@ -325,7 +325,7 @@
 
     <footer>
         <a href="https://www.instagram.com/jonnyzduban/" target="_blank" rel="noopener noreferrer" title="Instagram">
-            <svg viewBox="0 0 24 24" width="24" height="24">
+            <svg viewBox="0 0 24 24" width="17" height="17">
                 <defs>
                     <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
                         <stop offset="0%" stop-color="#fd5" />
@@ -346,7 +346,7 @@
     <script>
         let allSongs = [];
         let currentFilteredSongs = [];
-        let currentFontSize = 14;
+        let currentFontSize = 13; // Snížena i výchozí hodnota pro javascript
         let wakeLock = null;
 
         function initTheme() {
@@ -418,7 +418,7 @@
                 renderSongList(allSongs);
 
             } catch (err) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání souborů.</div>';
+                listContainer.innerHTML = '<div style="text-align:center; padding:15px; font-size:13px;">Chyba při načítání souborů.</div>';
             }
         }
 
@@ -443,7 +443,7 @@
             currentFilteredSongs = songs;
             const listContainer = document.getElementById('song-list');
             if (songs.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny.</div>';
+                listContainer.innerHTML = '<div style="text-align:center; padding:15px; font-size:13px;">Žádné písně nenalezeny.</div>';
                 return;
             }
             listContainer.innerHTML = songs.map((song, index) => `
@@ -528,7 +528,7 @@
 
         function autoFitFont() {
             const contentElem = document.getElementById('detail-content');
-            let size = 16;
+            let size = 14; // Startovní zmenšená velikost pro automatické přizpůsobení
             contentElem.style.fontSize = size + 'px';
 
             const containerWidth = contentElem.clientWidth;

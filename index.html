@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Přidáno Socket.io pro reálné síťové sdílení mezi PC a mobilem -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
     <style>
         :root {
@@ -398,31 +400,12 @@
         let wakeLock = null;
         let isSharedMode = localStorage.getItem('isSharedMode') === 'true';
         let isAdmin = localStorage.getItem('isAdmin') === 'true';
-        let syncInterval = null;
-        
-        // Používáme lokální localStorage události pro sync v rámci zařízení + simulovaný cloud klíč pro síť
-        // Pro plnou multi-device synchronizaci bez serveru ukládáme stav do localStorage klíče v cloudu nebo lokální sítě.
-        // Zde využijeme BroadcastChannel pro karty na jednom zařízení a Storage event pro multi-tab/multi-window.
-        
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'cloud_active_song' && event.newValue && isSharedMode && !isAdmin) {
-                try {
-                    const data = JSON.parse(event.newValue);
-                    if (data && data.url) {
-                        const songIndex = allSongs.findIndex(s => s.url === data.url);
-                        if (songIndex !== -1) {
-                            openSongByIndex(songIndex, false);
-                        }
-                    }
-                } catch(e) {}
-            } else if (event.key === 'cloud_active_action' && event.newValue === 'BACK' && isSharedMode && !isAdmin) {
-                showListUI(false);
-            }
-        });
+        let socket = null;
 
         function initApp() {
             initTheme();
             updateModeButtonUI();
+            initSocket();
 
             const cachedSongs = localStorage.getItem('cached_songs');
             if (cachedSongs) {
@@ -433,6 +416,34 @@
             }
 
             fetchSongList();
+        }
+
+        function initSocket() {
+            try {
+                // Připojení na veřejný socket server pro testování / sdílení
+                socket = io('https://socket-io-chat.zq.ms/', { transports: ['websocket', 'polling'] });
+                
+                socket.on('connect', () => {
+                    socket.emit('join_room', { room: 'zpivani_povoleno_room_2026' });
+                });
+
+                socket.on('change_song', (data) => {
+                    if (isSharedMode && !isAdmin) {
+                        const songIndex = allSongs.findIndex(s => s.url === data.songUrl);
+                        if (songIndex !== -1) {
+                            openSongByIndex(songIndex, false);
+                        }
+                    }
+                });
+
+                socket.on('go_back', () => {
+                    if (isSharedMode && !isAdmin) {
+                        showListUI(false);
+                    }
+                });
+            } catch (e) {
+                console.log("Chyba při inicializaci socketu:", e);
+            }
         }
 
         function initTheme() {
@@ -608,8 +619,8 @@
             const song = currentFilteredSongs[index] || allSongs[index];
             if (!song) return;
 
-            if (isSharedMode && isAdmin && broadcast) {
-                localStorage.setItem('cloud_active_song', JSON.stringify({ url: song.url, time: Date.now() }));
+            if (isSharedMode && isAdmin && broadcast && socket) {
+                socket.emit('change_song', { room: 'zpivani_povoleno_room_2026', songUrl: song.url });
             }
 
             const realIndex = allSongs.findIndex(s => s.url === song.url);
@@ -683,9 +694,8 @@
         }
 
         function goBack() {
-            if (isSharedMode && isAdmin) {
-                localStorage.setItem('cloud_active_action', 'BACK');
-                localStorage.setItem('cloud_active_action_time', Date.now());
+            if (isSharedMode && isAdmin && socket) {
+                socket.emit('go_back', { room: 'zpivani_povoleno_room_2026' });
             }
             showListUI(true);
         }

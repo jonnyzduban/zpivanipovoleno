@@ -312,16 +312,12 @@
             height: 20px;
         }
 
-        /* Pravá část patičky pro tajný vstup */
+        /* Tajná oblast zabírající celý prostor od konce IG textu až k pravému okraji */
         .secret-trigger-area {
+            flex: 1;
+            height: 100%;
             cursor: pointer;
-            font-size: 12px;
-            opacity: 0.4;
-            padding: 5px;
-            transition: opacity 0.2s;
-        }
-        .secret-trigger-area:hover {
-            opacity: 0.8;
+            user-select: none;
         }
     </style>
 </head>
@@ -386,14 +382,12 @@
             <span>Jonnyzduban.</span>
         </a>
         
-        <!-- PROSTOR NAPRAVO OD INSTAGRAMU PRO TAJNÝ SEZNAM -->
+        <!-- CELÝ PROSTOR OD KONCE IG AŽ PO OKRAJ -->
         <div class="secret-trigger-area"
              onmousedown="startSecretTimer()"
              onmouseup="cancelSecretTimer()"
              ontouchstart="startSecretTimer()"
-             ontouchend="cancelSecretTimer()"
-             title="Tajná sekce">
-            🔒
+             ontouchend="cancelSecretTimer()">
         </div>
     </footer>
 
@@ -647,7 +641,7 @@
         function startSecretTimer() {
             secretTimer = setTimeout(() => {
                 loadSecretSongs();
-            }, 3000); // Nastaveno na 3 vteřiny
+            }, 3000); // 3 vteřiny
         }
 
         function cancelSecretTimer() {

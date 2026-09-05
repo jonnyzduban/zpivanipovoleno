@@ -174,22 +174,21 @@
             font-weight: normal;
         }
 
-        /* Varování (ještě menší, flex-wrap zajistí přechod celé druhé věty na nový řádek při nedostatku místa) */
+        /* Varování vždy na jednom řádku, zmenšené písmo pro jistotu */
         .warning-banner {
             margin-top: 5px;
             margin-bottom: 5px;
             background-color: var(--card-bg);
             border: none;
             color: #aaa;
-            padding: 4px 8px;
+            padding: 4px 6px;
             border-radius: 5px;
             text-align: center;
-            font-size: 10.5px;
-            line-height: 1.25;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.2em 0.8em;
+            font-size: 9.5px;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .warning-banner strong {
@@ -309,10 +308,9 @@
                 <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
             </div>
             
-            <!-- VAROVÁNÍ -->
+            <!-- VAROVÁNÍ (vždy na jednom řádku) -->
             <div class="warning-banner">
-                <span><strong>Varování:</strong> Anděl, Stánky a Tři kříže mají ban!</span>
-                <span>Zrušení zákazu – 1000 Kč za píseň.</span>
+                <strong>Varování:</strong> Anděl, Stánky a Tři kříže mají ban! &nbsp;|&nbsp; Zrušení zákazu – 1000 Kč za píseň.
             </div>
         </div>
 

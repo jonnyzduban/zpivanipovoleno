@@ -7,8 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Přidáno Socket.io pro reálné síťové sdílení mezi PC a mobilem -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
     <style>
         :root {
@@ -112,23 +110,6 @@
             touch-action: manipulation;
         }
 
-        .btn-mode {
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-
-        .btn-mode.active {
-            border-color: var(--accent-color);
-            color: var(--accent-color);
-        }
-
         /* Vyhledávání a Seznam */
         .search-row {
             display: flex;
@@ -151,13 +132,15 @@
             background-color: var(--card-bg);
             color: var(--accent-color);
             border: 1px solid var(--border-color);
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 8px;
-            font-size: 13px;
-            font-weight: bold;
+            font-size: 16px;
             cursor: pointer;
             white-space: nowrap;
             touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .song-list {
@@ -326,11 +309,6 @@
             width: 20px;
             height: 20px;
         }
-
-        .secret-trigger {
-            cursor: pointer;
-            user-select: none;
-        }
     </style>
 </head>
 <body>
@@ -339,7 +317,6 @@
         <header>
             <div id="header-title" class="header-title" onclick="goBack()">🔥 Zpívání povoleno 2.0</div>
             <div class="header-controls">
-                <button class="btn-mode" id="btn-mode" onclick="toggleSharedMode()" title="Přepnout režim sdílení">Režim: Klasický</button>
                 <button class="btn-theme" id="btn-theme" onclick="toggleTheme(event)" title="Přepnout motiv">☀️</button>
             </div>
         </header>
@@ -348,7 +325,7 @@
         <div id="view-list">
             <div class="search-row">
                 <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
-                <button class="btn-random" onclick="selectRandomSong()">🎲 Náhodná</button>
+                <button class="btn-random" onclick="selectRandomSong()" title="Náhodná písnička">🎲</button>
             </div>
             <div class="song-list" id="song-list">
                 <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
@@ -389,7 +366,7 @@
             </svg>
         </a>
         <a href="https://www.instagram.com/jonnyzduban/" target="_blank" rel="noopener noreferrer" title="Instagram">
-            <span>Jonnyzduban<span class="secret-trigger" onclick="secretAdminLogin()">.</span></span>
+            <span>Jonnyzduban.</span>
         </a>
     </footer>
 
@@ -398,14 +375,9 @@
         let currentFilteredSongs = [];
         let currentFontSize = 14;
         let wakeLock = null;
-        let isSharedMode = localStorage.getItem('isSharedMode') === 'true';
-        let isAdmin = localStorage.getItem('isAdmin') === 'true';
-        let socket = null;
 
         function initApp() {
             initTheme();
-            updateModeButtonUI();
-            initSocket();
 
             const cachedSongs = localStorage.getItem('cached_songs');
             if (cachedSongs) {
@@ -416,34 +388,6 @@
             }
 
             fetchSongList();
-        }
-
-        function initSocket() {
-            try {
-                // Připojení na veřejný socket server pro testování / sdílení
-                socket = io('https://socket-io-chat.zq.ms/', { transports: ['websocket', 'polling'] });
-                
-                socket.on('connect', () => {
-                    socket.emit('join_room', { room: 'zpivani_povoleno_room_2026' });
-                });
-
-                socket.on('change_song', (data) => {
-                    if (isSharedMode && !isAdmin) {
-                        const songIndex = allSongs.findIndex(s => s.url === data.songUrl);
-                        if (songIndex !== -1) {
-                            openSongByIndex(songIndex, false);
-                        }
-                    }
-                });
-
-                socket.on('go_back', () => {
-                    if (isSharedMode && !isAdmin) {
-                        showListUI(false);
-                    }
-                });
-            } catch (e) {
-                console.log("Chyba při inicializaci socketu:", e);
-            }
         }
 
         function initTheme() {
@@ -470,48 +414,6 @@
             } else {
                 localStorage.setItem('theme', 'dark');
                 themeBtn.innerText = '☀️';
-            }
-        }
-
-        function toggleSharedMode() {
-            isSharedMode = !isSharedMode;
-            localStorage.setItem('isSharedMode', isSharedMode);
-            updateModeButtonUI();
-        }
-
-        function updateModeButtonUI() {
-            const btn = document.getElementById('btn-mode');
-            if (isSharedMode) {
-                const roleText = isAdmin ? ' (Admin)' : ' (Účastník)';
-                btn.innerText = `Režim: Sdílený${roleText}`;
-                btn.classList.add('active');
-            } else {
-                btn.innerText = 'Režim: Klasický';
-                btn.classList.remove('active');
-            }
-        }
-
-        function secretAdminLogin() {
-            if (isAdmin) {
-                if (confirm('Chcete se odhlásit z administrátorského účtu?')) {
-                    isAdmin = false;
-                    localStorage.setItem('isAdmin', 'false');
-                    updateModeButtonUI();
-                    alert('Byl jste odhlášen z admin účtu.');
-                }
-                return;
-            }
-
-            const password = prompt('Zadejte administrátorské heslo:');
-            if (password === '1234') {
-                isAdmin = true;
-                isSharedMode = true;
-                localStorage.setItem('isAdmin', 'true');
-                localStorage.setItem('isSharedMode', 'true');
-                updateModeButtonUI();
-                alert('Úspěšně přihlášen jako Admin!');
-            } else if (password !== null) {
-                alert('Nesprávné heslo!');
             }
         }
 
@@ -591,7 +493,7 @@
             if (songs.length === 0) return;
             
             listContainer.innerHTML = songs.map((song, index) => `
-                <div class="song-item" onclick="openSongByIndex(${index}, true)">
+                <div class="song-item" onclick="openSongByIndex(${index})">
                     <div><span class="song-number">${index + 1}.</span>${song.formattedName}</div>
                 </div>
             `).join('');
@@ -612,16 +514,12 @@
         function selectRandomSong() {
             if (allSongs.length === 0) return;
             const randomIndex = Math.floor(Math.random() * allSongs.length);
-            openSongByIndex(randomIndex, true);
+            openSongByIndex(randomIndex);
         }
 
-        function openSongByIndex(index, broadcast = true) {
+        function openSongByIndex(index) {
             const song = currentFilteredSongs[index] || allSongs[index];
             if (!song) return;
-
-            if (isSharedMode && isAdmin && broadcast && socket) {
-                socket.emit('change_song', { room: 'zpivani_povoleno_room_2026', songUrl: song.url });
-            }
 
             const realIndex = allSongs.findIndex(s => s.url === song.url);
             history.pushState({ view: 'detail' }, '', '#detail');
@@ -694,13 +592,10 @@
         }
 
         function goBack() {
-            if (isSharedMode && isAdmin && socket) {
-                socket.emit('go_back', { room: 'zpivani_povoleno_room_2026' });
-            }
-            showListUI(true);
+            showListUI();
         }
 
-        async function showListUI(broadcast = false) {
+        async function showListUI() {
             await releaseWakeLock();
             resetSearch();
 
@@ -723,7 +618,7 @@
 
         window.addEventListener('popstate', () => {
             if (window.location.hash !== '#detail') {
-                showListUI(false);
+                showListUI();
             }
         });
 

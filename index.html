@@ -161,8 +161,11 @@
             color: var(--accent-color);
             font-weight: normal;
             font-size: 0.85em;
-            margin-right: 6px;
+            margin-right: 8px;
             opacity: 0.7;
+            display: inline-block;
+            width: 24px;
+            text-align: right;
         }
 
         .artist-name {
@@ -434,7 +437,6 @@
             renderSongList(filtered);
         }
 
-        // --- Funkce pro vynulování vyhledávání ---
         function resetSearch() {
             const searchInput = document.getElementById('search');
             if (searchInput) {
@@ -447,13 +449,13 @@
             const song = currentFilteredSongs[index];
             if (!song) return;
             history.pushState({ view: 'detail' }, '', '#detail');
-            showDetailUI(song);
+            showDetailUI(song, index + 1);
         }
 
-        async function showDetailUI(song) {
+        async function showDetailUI(song, songNumber) {
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
-            document.getElementById('detail-title').innerHTML = song.formattedName;
+            document.getElementById('detail-title').innerHTML = `<span style="color: var(--accent-color);">${songNumber}.</span> ${song.formattedName}`;
             
             await requestWakeLock();
 
@@ -532,7 +534,6 @@
         async function showListUI() {
             await releaseWakeLock();
 
-            // Vynuluje vyhledávací pole a obnoví kompletní seznam písní
             resetSearch();
 
             document.getElementById('view-list').style.display = 'block';

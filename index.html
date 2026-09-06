@@ -241,7 +241,7 @@
             border-bottom: 1px solid var(--border-color);
             -webkit-user-select: none;
             user-select: none;
-            transition: opacity 0.3s, transform 0.3s, height 0.3s, margin 0.3s, padding 0.3s;
+            transition: opacity 0.3s, transform 0.3s;
         }
 
         .song-title {
@@ -280,10 +280,10 @@
             background-color: transparent;
         }
 
-        /* REŽIM PÓDIA (Full screen bez prvků) */
+        /* REŽIM PÓDIA (Full screen - skryje hlavičku, patičku a ovládací tlačítka velikosti) */
         body.stage-mode header,
         body.stage-mode footer,
-        body.stage-mode .song-header-detail {
+        body.stage-mode .font-controls {
             opacity: 0;
             pointer-events: none;
             height: 0;
@@ -301,6 +301,12 @@
             border: none;
             background-color: var(--bg-color);
             padding: 4px;
+        }
+
+        body.stage-mode .song-header-detail {
+            border-bottom: none;
+            margin-bottom: 4px;
+            padding-bottom: 0;
         }
 
         /* Patička - Instagram uprostřed, tajná plocha vyplní zbytek doprava */
@@ -386,7 +392,7 @@
             </div>
         </div>
 
-        <div id="view-detail" class="song-detail" id="song-detail-box">
+        <div id="view-detail" class="song-detail">
             <div class="song-header-detail">
                 <h2 class="song-title" id="detail-title"></h2>
                 <div class="font-controls">
@@ -438,7 +444,7 @@
         let wakeLock = null;
         let secretTimer = null;
         let isInSecretMode = false;
-        let lastTapTime = 0; // Pro detekci dvojkliku v detailu
+        let lastTapTime = 0;
 
         function initApp() {
             initTheme();
@@ -457,13 +463,11 @@
                 fetchSongList();
             }
 
-            // Nastavení posluchače pro dvojité klepnutí v detailu písně
             const detailContainer = document.getElementById('view-detail');
             detailContainer.addEventListener('click', (e) => {
                 const currentTime = new Date().getTime();
                 const tapLength = currentTime - lastTapTime;
                 
-                // Pokud uživatel poklepal (dva kliknutí v rozmezí 300 ms)
                 if (tapLength < 300 && tapLength > 0) {
                     toggleStageMode();
                     e.preventDefault();
@@ -473,10 +477,8 @@
         }
 
         function toggleStageMode() {
-            // Režim pódia funguje pouze v detailu písně
             if (document.getElementById('view-detail').style.display === 'block') {
                 document.body.classList.toggle('stage-mode');
-                // Po zapnutí/vypnutí pódia zkusíme znovu přepočítat velikost písma na šířku displeje
                 setTimeout(autoFitFont, 50);
             }
         }
@@ -626,11 +628,10 @@
         }
 
         async function showDetailUI(song, songNumber) {
-            // Vždy při otevření nového detailu vypneme režim pódia, kdyby zůstal zapnutý
             document.body.classList.remove('stage-mode');
 
             document.getElementById('view-list').style.display = 'none';
-            document.getElementById('view-detail').style.display = 'block';
+            document.getElementById('view-detail').style.display = 'flex';
             document.getElementById('detail-title').innerHTML = `<span style="color: var(--accent-color);">${songNumber}.</span> ${song.formattedName}`;
             
             await requestWakeLock();
@@ -694,7 +695,6 @@
         }
 
         function goBack() {
-            // Pokud je zapnutý režim pódia, tlačítko zpět v hlavičce sice není vidět, ale kdyby se volalo programově:
             document.body.classList.remove('stage-mode');
 
             if (isInSecretMode && window.location.hash === '#detail') {
@@ -740,7 +740,7 @@
         function startSecretTimer() {
             secretTimer = setTimeout(() => {
                 loadSecretSongs(false);
-            }, 2000); // 2 vteřiny
+            }, 2000);
         }
 
         function cancelSecretTimer() {
@@ -833,7 +833,7 @@
                     if (allSongs.length > 0) renderSongList(allSongs);
                 }
                 document.getElementById('view-list').style.display = 'none';
-                document.getElementById('view-detail').style.display = 'block';
+                document.getElementById('view-detail').style.display = 'flex';
             }
         });
 

@@ -51,6 +51,8 @@
 
         .main-container {
             flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Hlavička a Navigace */
@@ -68,6 +70,7 @@
             -webkit-user-select: none;
             user-select: none;
             touch-action: manipulation;
+            transition: opacity 0.3s, transform 0.3s;
         }
 
         .header-title {
@@ -223,6 +226,10 @@
             border-radius: 10px;
             border: 1px solid var(--border-color);
             overflow-x: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
         }
 
         .song-header-detail {
@@ -234,6 +241,7 @@
             border-bottom: 1px solid var(--border-color);
             -webkit-user-select: none;
             user-select: none;
+            transition: opacity 0.3s, transform 0.3s, height 0.3s, margin 0.3s, padding 0.3s;
         }
 
         .song-title {
@@ -263,12 +271,36 @@
             color: var(--text-color);
             margin: 0;
             -webkit-font-smoothing: antialiased;
+            flex: 1;
         }
 
         .chord {
             color: var(--chord-color);
             font-weight: 700;
             background-color: transparent;
+        }
+
+        /* REŽIM PÓDIA (Full screen bez prvků) */
+        body.stage-mode header,
+        body.stage-mode footer,
+        body.stage-mode .song-header-detail {
+            opacity: 0;
+            pointer-events: none;
+            height: 0;
+            margin: 0;
+            padding: 0;
+            border: none;
+            overflow: hidden;
+        }
+
+        body.stage-mode {
+            padding: 2px;
+        }
+
+        body.stage-mode .song-detail {
+            border: none;
+            background-color: var(--bg-color);
+            padding: 4px;
         }
 
         /* Patička - Instagram uprostřed, tajná plocha vyplní zbytek doprava */
@@ -283,6 +315,7 @@
             position: relative;
             -webkit-user-select: none;
             user-select: none;
+            transition: opacity 0.3s, transform 0.3s;
         }
 
         body:not(.light-theme) footer {
@@ -332,14 +365,13 @@
 <body>
 
     <div class="main-container">
-        <header>
+        <header id="main-header">
             <div id="header-title" class="header-title" onclick="goBack()">🔥 Zpívání povoleno 2.0</div>
             <div class="header-controls">
                 <button class="btn-theme" id="btn-theme" onclick="toggleTheme(event)" title="Přepnout motiv">☀️</button>
             </div>
         </header>
 
-        <!-- POHLED 1: SEZNAM PÍSNÍ -->
         <div id="view-list">
             <div class="search-row">
                 <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
@@ -349,14 +381,12 @@
                 <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
             </div>
             
-            <!-- VAROVÁNÍ -->
             <div class="warning-banner" id="warning-banner">
                 <strong>Varování:</strong> Anděl, Stánky a Tři kříže mají ban! &nbsp; Zrušení zákazu 1 000 Kč/píseň ✌️
             </div>
         </div>
 
-        <!-- POHLED 2: DETAIL PÍSNĚ -->
-        <div id="view-detail" class="song-detail">
+        <div id="view-detail" class="song-detail" id="song-detail-box">
             <div class="song-header-detail">
                 <h2 class="song-title" id="detail-title"></h2>
                 <div class="font-controls">
@@ -368,7 +398,7 @@
         </div>
     </div>
 
-    <footer>
+    <footer id="main-footer">
         <div class="footer-center">
             <a href="https://www.instagram.com/jonnyzduban/" 
                target="_blank" 
@@ -392,7 +422,6 @@
             </a>
         </div>
         
-        <!-- NEVIDITELNÁ PLOCHA OD KONCE IG AŽ PO PRAVÝ OKRAJ -->
         <div class="secret-trigger-area"
              onmousedown="startSecretTimer()"
              onmouseup="cancelSecretTimer()"
@@ -409,6 +438,7 @@
         let wakeLock = null;
         let secretTimer = null;
         let isInSecretMode = false;
+        let lastTapTime = 0; // Pro detekci dvojkliku v detailu
 
         function initApp() {
             initTheme();
@@ -421,11 +451,33 @@
                 } catch (e) {}
             }
 
-            // Pokud uživatel načte stránku rovnou s hashem #secret, ošetříme to
             if (window.location.hash === '#secret') {
                 loadSecretSongs(true);
             } else {
                 fetchSongList();
+            }
+
+            // Nastavení posluchače pro dvojité klepnutí v detailu písně
+            const detailContainer = document.getElementById('view-detail');
+            detailContainer.addEventListener('click', (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTapTime;
+                
+                // Pokud uživatel poklepal (dva kliknutí v rozmezí 300 ms)
+                if (tapLength < 300 && tapLength > 0) {
+                    toggleStageMode();
+                    e.preventDefault();
+                }
+                lastTapTime = currentTime;
+            });
+        }
+
+        function toggleStageMode() {
+            // Režim pódia funguje pouze v detailu písně
+            if (document.getElementById('view-detail').style.display === 'block') {
+                document.body.classList.toggle('stage-mode');
+                // Po zapnutí/vypnutí pódia zkusíme znovu přepočítat velikost písma na šířku displeje
+                setTimeout(autoFitFont, 50);
             }
         }
 
@@ -574,6 +626,9 @@
         }
 
         async function showDetailUI(song, songNumber) {
+            // Vždy při otevření nového detailu vypneme režim pódia, kdyby zůstal zapnutý
+            document.body.classList.remove('stage-mode');
+
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'block';
             document.getElementById('detail-title').innerHTML = `<span style="color: var(--accent-color);">${songNumber}.</span> ${song.formattedName}`;
@@ -634,15 +689,17 @@
         }
 
         function changeFontSize(delta) {
-            currentFontSize = Math.max(7, Math.min(24, currentFontSize + delta));
+            currentFontSize = Math.max(7, Math.min(32, currentFontSize + delta));
             document.getElementById('detail-content').style.fontSize = currentFontSize + 'px';
         }
 
         function goBack() {
+            // Pokud je zapnutý režim pódia, tlačítko zpět v hlavičce sice není vidět, ale kdyby se volalo programově:
+            document.body.classList.remove('stage-mode');
+
             if (isInSecretMode && window.location.hash === '#detail') {
                 history.back();
             } else if (isInSecretMode) {
-                // Pokud jsme v tajném seznamu a klikneme na nadpis, jdeme zpět na oficiální
                 history.pushState({ view: 'list' }, '', window.location.pathname);
                 showListUI(false);
             } else {
@@ -652,6 +709,7 @@
 
         async function showListUI(fromPopState = false, restoreSecret = false) {
             await releaseWakeLock();
+            document.body.classList.remove('stage-mode');
             
             if (!restoreSecret) {
                 isInSecretMode = false;
@@ -753,6 +811,7 @@
 
         window.addEventListener('popstate', (event) => {
             const state = event.state;
+            document.body.classList.remove('stage-mode');
 
             if (!state || state.view === 'list' || window.location.hash === '') {
                 showListUI(true, false);

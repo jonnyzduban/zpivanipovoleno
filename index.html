@@ -324,7 +324,7 @@
             right: 0;
             top: 0;
             bottom: 0;
-            left: 55%; /* Pokrývá pravou polovinu patičky až k okraji */
+            left: 55%;
             cursor: pointer;
         }
     </style>
@@ -350,7 +350,7 @@
             </div>
             
             <!-- VAROVÁNÍ -->
-            <div class="warning-banner">
+            <div class="warning-banner" id="warning-banner">
                 <strong>Varování:</strong> Anděl, Stánky a Tři kříže mají ban! &nbsp; Zrušení zákazu 1 000 Kč/píseň ✌️
             </div>
         </div>
@@ -403,10 +403,12 @@
 
     <script>
         let allSongs = [];
+        let secretSongs = [];
         let currentFilteredSongs = [];
         let currentFontSize = 14;
         let wakeLock = null;
         let secretTimer = null;
+        let isInSecretMode = false;
 
         function initApp() {
             initTheme();
@@ -419,7 +421,12 @@
                 } catch (e) {}
             }
 
-            fetchSongList();
+            // Pokud uživatel načte stránku rovnou s hashem #secret, ošetříme to
+            if (window.location.hash === '#secret') {
+                loadSecretSongs(true);
+            } else {
+                fetchSongList();
+            }
         }
 
         function initTheme() {
@@ -490,7 +497,9 @@
                     songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
                     allSongs = songs;
                     localStorage.setItem('cached_songs', JSON.stringify(songs));
-                    renderSongList(allSongs);
+                    if (!isInSecretMode && window.location.hash !== '#detail') {
+                        renderSongList(allSongs);
+                    }
                 } else if (allSongs.length === 0) {
                     listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny.</div>';
                 }
@@ -524,8 +533,10 @@
             const listContainer = document.getElementById('song-list');
             if (songs.length === 0) return;
             
+            const borderColor = isInSecretMode ? 'var(--accent-color)' : 'var(--border-color)';
+            
             listContainer.innerHTML = songs.map((song, index) => `
-                <div class="song-item" onclick="openSongByIndex(${index})">
+                <div class="song-item" onclick="openSongByIndex(${index})" style="border-color: ${borderColor};">
                     <div><span class="song-number">${index + 1}.</span>${song.formattedName}</div>
                 </div>
             `).join('');
@@ -533,28 +544,32 @@
 
         function filterSongs() {
             const query = document.getElementById('search').value.toLowerCase();
-            const filtered = allSongs.filter(s => s.rawName.toLowerCase().includes(query));
+            const dataSource = isInSecretMode ? secretSongs : allSongs;
+            const filtered = dataSource.filter(s => s.rawName.toLowerCase().includes(query));
             renderSongList(filtered);
         }
 
         function resetSearch() {
             const searchInput = document.getElementById('search');
             if (searchInput) searchInput.value = '';
-            renderSongList(allSongs);
+            renderSongList(isInSecretMode ? secretSongs : allSongs);
         }
 
         function selectRandomSong() {
-            if (allSongs.length === 0) return;
-            const randomIndex = Math.floor(Math.random() * allSongs.length);
+            const dataSource = isInSecretMode ? secretSongs : allSongs;
+            if (dataSource.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * dataSource.length);
             openSongByIndex(randomIndex);
         }
 
         function openSongByIndex(index) {
-            const song = currentFilteredSongs[index] || allSongs[index];
+            const dataSource = isInSecretMode ? secretSongs : allSongs;
+            const song = currentFilteredSongs[index] || dataSource[index];
             if (!song) return;
 
-            const realIndex = allSongs.findIndex(s => s.url === song.url);
-            history.pushState({ view: 'detail' }, '', '#detail');
+            const realIndex = dataSource.findIndex(s => s.url === song.url);
+            
+            history.pushState({ view: 'detail', isSecret: isInSecretMode }, '', '#detail');
             showDetailUI(song, realIndex !== -1 ? realIndex + 1 : index + 1);
         }
 
@@ -624,16 +639,32 @@
         }
 
         function goBack() {
-            showListUI();
+            if (isInSecretMode && window.location.hash === '#detail') {
+                history.back();
+            } else if (isInSecretMode) {
+                // Pokud jsme v tajném seznamu a klikneme na nadpis, jdeme zpět na oficiální
+                history.pushState({ view: 'list' }, '', window.location.pathname);
+                showListUI(false);
+            } else {
+                showListUI(false);
+            }
         }
 
-        async function showListUI() {
+        async function showListUI(fromPopState = false, restoreSecret = false) {
             await releaseWakeLock();
-            resetSearch();
+            
+            if (!restoreSecret) {
+                isInSecretMode = false;
+                const warningBanner = document.getElementById('warning-banner');
+                if (warningBanner) warningBanner.style.display = 'block';
+                resetSearch();
+            }
 
             document.getElementById('view-list').style.display = 'block';
             document.getElementById('view-detail').style.display = 'none';
-            window.scrollTo(0, 0);
+            if (!fromPopState) {
+                window.scrollTo(0, 0);
+            }
         }
 
         function highlightChords(text) {
@@ -650,7 +681,7 @@
 
         function startSecretTimer() {
             secretTimer = setTimeout(() => {
-                loadSecretSongs();
+                loadSecretSongs(false);
             }, 2000); // 2 vteřiny
         }
 
@@ -661,9 +692,25 @@
             }
         }
 
-        async function loadSecretSongs() {
+        async function loadSecretSongs(isInitialLoad = false) {
+            isInSecretMode = true;
+            
+            if (!isInitialLoad) {
+                history.pushState({ view: 'secret' }, '', '#secret');
+            }
+
+            const warningBanner = document.getElementById('warning-banner');
+            if (warningBanner) warningBanner.style.display = 'none';
+
             const listContainer = document.getElementById('song-list');
-            listContainer.innerHTML = '<div style="text-align: center; color: var(--accent-color); padding: 20px;">🔓 Načítám tajný repertoár...</div>';
+            
+            if (secretSongs.length === 0) {
+                listContainer.innerHTML = '<div style="text-align: center; color: var(--accent-color); padding: 20px;">🔓 Načítám tajný repertoár...</div>';
+            } else {
+                renderSongList(secretSongs);
+                document.getElementById('search').value = '';
+                return;
+            }
             
             try {
                 const pathParts = window.location.pathname.split('/').filter(p => p);
@@ -690,15 +737,12 @@
 
                 if (songs.length > 0) {
                     songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
-                    currentFilteredSongs = songs;
-                    listContainer.innerHTML = songs.map((song, index) => `
-                        <div class="song-item" onclick="openSongByIndex(${index})" style="border-color: var(--accent-color);">
-                            <div><span class="song-number">${index + 1}.</span>${song.formattedName}</div>
-                        </div>
-                    `).join('');
-                    
+                    secretSongs = songs;
+                    renderSongList(secretSongs);
                     document.getElementById('search').value = '';
-                    window.scrollTo(0, 0);
+                    if (!isInitialLoad) {
+                        window.scrollTo(0, 0);
+                    }
                 } else {
                     listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné tajné písně nenalezeny.</div>';
                 }
@@ -707,9 +751,30 @@
             }
         }
 
-        window.addEventListener('popstate', () => {
-            if (window.location.hash !== '#detail') {
-                showListUI();
+        window.addEventListener('popstate', (event) => {
+            const state = event.state;
+
+            if (!state || state.view === 'list' || window.location.hash === '') {
+                showListUI(true, false);
+                if (allSongs.length > 0) renderSongList(allSongs);
+                fetchSongList();
+            } else if (state.view === 'secret') {
+                showListUI(true, true);
+                loadSecretSongs(true);
+            } else if (state.view === 'detail') {
+                if (state.isSecret) {
+                    isInSecretMode = true;
+                    if (secretSongs.length > 0) {
+                        renderSongList(secretSongs);
+                    } else {
+                        loadSecretSongs(true);
+                    }
+                } else {
+                    isInSecretMode = false;
+                    if (allSongs.length > 0) renderSongList(allSongs);
+                }
+                document.getElementById('view-list').style.display = 'none';
+                document.getElementById('view-detail').style.display = 'block';
             }
         });
 

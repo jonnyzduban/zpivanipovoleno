@@ -377,6 +377,7 @@
             </div>
         </header>
 
+        <!-- POHLED 1: SEZNAM PÍSNÍ -->
         <div id="view-list">
             <div class="search-row">
                 <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
@@ -386,11 +387,13 @@
                 <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
             </div>
             
+            <!-- VAROVÁNÍ -->
             <div class="warning-banner" id="warning-banner">
                 <strong>Varování:</strong> Anděl, Stánky a Tři kříže mají ban! &nbsp; Zrušení zákazu 1 000 Kč/píseň ✌️
             </div>
         </div>
 
+        <!-- POHLED 2: DETAIL PÍSNĚ -->
         <div id="view-detail" class="song-detail">
             <div class="song-header-detail">
                 <h2 class="song-title" id="detail-title"></h2>
@@ -423,10 +426,11 @@
                 </svg>
             </a>
             <a href="https://www.instagram.com/jonnyzduban/" target="_blank" rel="noopener noreferrer" title="Instagram">
-                <span>Jonnyzduban</span>
+                <span>Jonnyzduban.</span>
             </a>
         </div>
         
+        <!-- NEVIDITELNÁ PLOCHA OD KONCE IG AŽ PO PRAVÝ OKRAJ -->
         <div class="secret-trigger-area"
              onmousedown="startSecretTimer()"
              onmouseup="cancelSecretTimer()"
@@ -443,7 +447,9 @@
         let wakeLock = null;
         let secretTimer = null;
         let isInSecretMode = false;
-        let lastTapTime = 0;
+        
+        let clickCount = 0;
+        let clickTimer = null;
 
         function initApp() {
             initTheme();
@@ -467,14 +473,22 @@
 
             const detailContainer = document.getElementById('view-detail');
             detailContainer.addEventListener('click', (e) => {
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTapTime;
-                
-                if (tapLength < 300 && tapLength > 0) {
+                if (e.target.closest('button') || e.target.closest('.font-controls')) {
+                    return;
+                }
+
+                clickCount++;
+
+                if (clickCount === 1) {
+                    clickTimer = setTimeout(() => {
+                        clickCount = 0;
+                    }, 500); 
+                } else if (clickCount === 3) {
+                    clearTimeout(clickTimer);
+                    clickCount = 0;
                     toggleStageMode();
                     e.preventDefault();
                 }
-                lastTapTime = currentTime;
             });
         }
 

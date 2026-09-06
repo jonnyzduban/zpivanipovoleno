@@ -227,7 +227,6 @@
             border: 1px solid var(--border-color);
             overflow-x: auto;
             flex: 1;
-            display: flex;
             flex-direction: column;
             transition: all 0.3s ease;
         }
@@ -280,7 +279,7 @@
             background-color: transparent;
         }
 
-        /* REŽIM PÓDIA (Full screen - skryje hlavičku, patičku a ovládací tlačítka velikosti) */
+        /* REŽIM PÓDIA (Full screen - skryje hlavičku, patičku a ovládací tlačítka velikosti, zachová nadpis) */
         body.stage-mode header,
         body.stage-mode footer,
         body.stage-mode .font-controls {
@@ -477,7 +476,7 @@
         }
 
         function toggleStageMode() {
-            if (document.getElementById('view-detail').style.display === 'block') {
+            if (document.getElementById('view-detail').style.display === 'flex') {
                 document.body.classList.toggle('stage-mode');
                 setTimeout(autoFitFont, 50);
             }
@@ -700,9 +699,12 @@
             if (isInSecretMode && window.location.hash === '#detail') {
                 history.back();
             } else if (isInSecretMode) {
-                history.pushState({ view: 'list' }, '', window.location.pathname);
-                showListUI(false);
+                // Použijeme replaceState, aby v URL nezůstalo #detail
+                history.replaceState({ view: 'secret' }, '', '#secret');
+                loadSecretSongs(true);
             } else {
+                // Použijeme replaceState, aby v URL nezůstalo #detail
+                history.replaceState({ view: 'list' }, '', window.location.pathname);
                 showListUI(false);
             }
         }

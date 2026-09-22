@@ -229,6 +229,7 @@
             flex: 1;
             flex-direction: column;
             transition: all 0.3s ease;
+            touch-action: pan-y;
         }
 
         .song-header-detail {
@@ -279,7 +280,7 @@
             background-color: transparent;
         }
 
-        /* REŽIM PÓDIA (Full screen - skryje hlavičku, patičku a ovládací tlačítka velikosti, zachová nadpis) */
+        /* REŽIM PÓDIA */
         body.stage-mode header,
         body.stage-mode footer,
         body.stage-mode .font-controls {
@@ -308,7 +309,7 @@
             padding-bottom: 0;
         }
 
-        /* Patička - Instagram uprostřed, tajná plocha vyplní zbytek doprava */
+        /* Patička */
         footer {
             padding: 5px 0 10px 0;
             margin-top: 0;
@@ -356,7 +357,6 @@
             height: 20px;
         }
 
-        /* Tajná plocha zabírající celou pravou stranu od IG do kraje */
         .secret-trigger-area {
             position: absolute;
             right: 0;
@@ -432,7 +432,6 @@
             </a>
         </div>
         
-        <!-- NEVIDITELNÁ PLOCHA OD KONCE IG AŽ PO PRAVÝ OKRAJ -->
         <div class="secret-trigger-area"
              onmousedown="startSecretTimer()"
              onmouseup="cancelSecretTimer()"
@@ -453,6 +452,12 @@
         
         let clickCount = 0;
         let clickTimer = null;
+
+        // Proměnné pro gesta posunu (Swipe)
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
 
         function initApp() {
             initTheme();
@@ -475,6 +480,8 @@
             }
 
             const detailContainer = document.getElementById('view-detail');
+            
+            // Detekce trojitého poklepání
             detailContainer.addEventListener('click', (e) => {
                 if (e.target.closest('button') || e.target.closest('.font-controls')) {
                     return;
@@ -493,6 +500,35 @@
                     e.preventDefault();
                 }
             });
+
+            // Přidání posluchačů gest pro posun do stran na mobilu
+            detailContainer.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }, { passive: true });
+
+            detailContainer.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                touchEndY = e.changedTouches[0].screenY;
+                handleSwipe();
+            }, { passive: true });
+        }
+
+        function handleSwipe() {
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            // Kontrola, aby šlo o horizontální posun (nikoliv skrolování dolů/nahoru)
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                const swipeThreshold = 50; // Minimální vzdálenost v pixelech pro detekci swipe
+                if (diffX < -swipeThreshold) {
+                    // Posun doprava -> doleva = Další píseň
+                    navigateSong(1);
+                } else if (diffX > swipeThreshold) {
+                    // Posun doleva -> doprava = Předchozí píseň
+                    navigateSong(-1);
+                }
+            }
         }
 
         function toggleStageMode() {

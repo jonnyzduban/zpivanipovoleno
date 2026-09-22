@@ -274,7 +274,7 @@
             flex: 1;
             will-change: transform, opacity;
             touch-action: pan-y;
-            transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+            transition: transform 0.15s ease-out, opacity 0.15s ease-out;
         }
 
         .chord {
@@ -457,7 +457,7 @@
         let clickCount = 0;
         let clickTimer = null;
 
-        // Gesta pro přejetí prstem (Original Slide Transition)
+        // Gesta pro přejetí prstem
         let touchStartX = 0;
         let touchStartY = 0;
 
@@ -523,47 +523,62 @@
             }, { passive: true });
         }
 
-        // Původní plynulý posun obrazovky z boku
-        function navigateSong(direction) {
+        // PŘECHOD (100 ms odjezd + 150 ms příjezd, načtení dat PŘED animací)
+        async function navigateSong(direction) {
             if (isAnimating) return;
             isAnimating = true;
 
             const contentElem = document.getElementById('detail-content');
             const dataSource = isInSecretMode ? secretSongs : allSongs;
             
-            // Odjezd staré písničky
-            contentElem.style.transform = `translateX(${direction === 1 ? '-100px' : '100px'})`;
+            // Určení nové písničky
+            const nextIndex = (currentSongIndex + direction + dataSource.length) % dataSource.length;
+            const song = dataSource[nextIndex];
+
+            // 1. NEJDŘÍVE stáhneme text na pozadí (stará píseň stále svítí)
+            let newText = "";
+            try {
+                const targetUrl = song.url.startsWith('http') ? song.url : encodeURIComponent(song.url);
+                const response = await fetch(targetUrl);
+                if (response.ok) {
+                    newText = await response.text();
+                } else {
+                    newText = "⚠️ Písničku se nepodařilo načíst.";
+                }
+            } catch (err) {
+                newText = "⚠️ Chyba při načítání písně.";
+            }
+
+            // 2. Rychlý ODJEZD staré písničky (100 ms)
+            contentElem.style.transition = 'transform 0.10s ease-in, opacity 0.10s ease-in';
+            contentElem.style.transform = `translateX(${direction === 1 ? '-80px' : '80px'})`;
             contentElem.style.opacity = '0';
 
             setTimeout(() => {
-                currentSongIndex += direction;
-                if (currentSongIndex < 0) {
-                    currentSongIndex = dataSource.length - 1;
-                } else if (currentSongIndex >= dataSource.length) {
-                    currentSongIndex = 0;
-                }
+                // Aktualizace indexu, titulu a vložení staženého textu
+                currentSongIndex = nextIndex;
+                document.getElementById('detail-title').innerHTML = `<span style="color: var(--accent-color);">${currentSongIndex + 1}.</span> ${song.formattedName}`;
+                contentElem.innerHTML = highlightChords(newText);
+                autoFitFont();
+                window.scrollTo(0, 0);
 
-                const song = dataSource[currentSongIndex];
-                
-                // Příprava nové písničky na druhé straně
+                // 3. Příprava na druhé straně
                 contentElem.style.transition = 'none';
-                contentElem.style.transform = `translateX(${direction === 1 ? '100px' : '-100px'})`;
+                contentElem.style.transform = `translateX(${direction === 1 ? '80px' : '-80px'})`;
 
-                showDetailUI(song, currentSongIndex + 1).then(() => {
+                requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            // Příjezd nové písničky
-                            contentElem.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out';
-                            contentElem.style.transform = 'translateX(0)';
-                            contentElem.style.opacity = '1';
+                        // PŘÍJEZD nové písničky (150 ms)
+                        contentElem.style.transition = 'transform 0.15s ease-out, opacity 0.15s ease-out';
+                        contentElem.style.transform = 'translateX(0)';
+                        contentElem.style.opacity = '1';
 
-                            setTimeout(() => {
-                                isAnimating = false;
-                            }, 250);
-                        });
+                        setTimeout(() => {
+                            isAnimating = false;
+                        }, 150);
                     });
                 });
-            }, 200);
+            }, 100);
         }
 
         function toggleStageMode() {
@@ -732,7 +747,6 @@
         async function openSongContent(url) {
             const contentElem = document.getElementById('detail-content');
             
-            // Časový limit (timeout) pro stažení souboru
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 2000);
 

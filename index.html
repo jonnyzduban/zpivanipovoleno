@@ -3,30 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🔥 Zpívání povoleno 2.0</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
+    <title>Zpívání povoleno 2.0</title>
     <style>
         :root {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
-            --card-hover: #2a2a2a;
             --text-color: #e0e0e0;
-            --accent-color: #ff9800;
-            --chord-color: #ffb74d;
-            --border-color: #333;
-        }
-
-        body.light-theme {
-            --bg-color: #ffffff;
-            --card-bg: #ffffff;
-            --card-hover: #f5f5f5;
-            --text-color: #000000;
-            --accent-color: #ff9800;
-            --chord-color: #cc0000;
-            --border-color: #eee;
+            --text-muted: #a0a0a0;
+            --accent-color: #ff5252;
+            --accent-hover: #ff1744;
+            --chord-color: #ff9100;
+            --border-color: #2c2c2c;
         }
 
         * {
@@ -37,610 +24,428 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            padding: 4px 6px;
-            max-width: 800px;
-            margin: 0 auto;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: background-color 0.2s, color 0.2s;
+            user-select: none;
         }
 
-        .main-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Hlavička a Navigace */
         header {
+            background-color: var(--card-bg);
+            padding: 1rem;
             position: sticky;
             top: 0;
-            background-color: var(--bg-color);
-            padding: 4px 0;
-            border-bottom: 2px solid var(--accent-color);
-            margin-bottom: 6px;
             z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .title-row {
+            display: flex;
             justify-content: space-between;
-            -webkit-user-select: none;
-            user-select: none;
-            touch-action: manipulation;
-            transition: opacity 0.3s, transform 0.3s;
+            align-items: center;
         }
 
-        .header-title {
-            font-size: 18px;
-            font-weight: bold;
+        h1 {
+            font-size: 1.4rem;
             color: var(--accent-color);
-            cursor: pointer;
             display: flex;
             align-items: center;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .btn-ctrl {
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: bold;
+            gap: 0.5rem;
             cursor: pointer;
-            touch-action: manipulation;
-        }
-
-        .btn-theme {
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--accent-color);
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-
-        /* Vyhledávání a Seznam */
-        .search-row {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 6px;
         }
 
         .search-box {
-            flex: 1;
-            padding: 6px 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            font-size: 14px;
-            outline: none;
+            width: 100%;
+            position: relative;
         }
 
-        .btn-random {
-            background-color: var(--card-bg);
-            color: var(--accent-color);
-            border: 1px solid var(--border-color);
-            padding: 6px 12px;
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
             border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            white-space: nowrap;
-            touch-action: manipulation;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border: 1px solid var(--border-color);
+            background-color: #2a2a2a;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .warning-banner {
+            background-color: rgba(255, 82, 82, 0.15);
+            border: 1px solid var(--accent-color);
+            color: #ff8a8a;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        main {
+            flex: 1;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
         }
 
         .song-list {
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 0.5rem;
         }
 
         .song-item {
             background-color: var(--card-bg);
-            padding: 5px 10px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            -webkit-user-select: none;
-            user-select: none;
-            touch-action: manipulation;
-            line-height: 1.2;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            transition: transform 0.1s, background-color 0.2s;
         }
 
         .song-item:active {
-            background-color: var(--card-hover);
+            transform: scale(0.99);
+            background-color: #252525;
         }
 
-        .song-item::after {
-            content: "❯";
-            color: #888;
-            font-size: 11px;
-            margin-left: 6px;
+        .song-item.secret-item {
+            border-color: var(--accent-color);
+        }
+
+        .song-info {
+            display: flex;
+            flex-direction: column;
         }
 
         .song-number {
+            font-weight: bold;
             color: var(--accent-color);
-            font-weight: normal;
-            font-size: 0.85em;
-            margin-right: 8px;
-            opacity: 0.7;
-            display: inline-block;
-            width: 24px;
-            text-align: right;
+            margin-right: 0.5rem;
         }
 
-        .artist-name {
-            font-size: 0.85em;
-            color: #888;
-            font-weight: normal;
+        .song-title-text {
+            font-weight: 600;
+            font-size: 1.05rem;
         }
 
-        /* Varování */
-        .warning-banner {
-            margin-top: 5px;
-            margin-bottom: 5px;
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: #aaa;
-            padding: 5px 10px;
-            border-radius: 6px;
-            text-align: center;
-            font-size: 9.5px;
-            line-height: 1.2;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .song-artist {
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
 
-        .warning-banner strong {
-            color: #ff3b30;
-        }
-
-        /* Detail Písně */
+        /* Detail písně */
         .song-detail {
             display: none;
-            background-color: var(--card-bg);
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            overflow-x: auto;
-            flex: 1;
             flex-direction: column;
-            transition: all 0.3s ease;
+            gap: 1rem;
         }
 
         .song-header-detail {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
+            padding-bottom: 0.75rem;
             border-bottom: 1px solid var(--border-color);
-            -webkit-user-select: none;
-            user-select: none;
-            transition: opacity 0.3s, transform 0.3s;
+            gap: 0.5rem;
         }
 
         .song-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--accent-color);
-            margin: 0;
-        }
-
-        body.light-theme .song-title {
-            color: #000000;
+            font-size: 1.2rem;
+            line-height: 1.3;
         }
 
         .font-controls {
             display: flex;
-            gap: 6px;
+            gap: 0.35rem;
+            flex-shrink: 0;
         }
 
-        pre {
-            font-family: 'Roboto Mono', Consolas, monospace;
-            font-size: 14px;
-            font-weight: 400;
-            line-height: 1.35;
-            letter-spacing: 0;
-            word-spacing: 0;
-            white-space: pre;
+        .btn-ctrl {
+            background-color: #2a2a2a;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 38px;
+        }
+
+        .btn-ctrl:active {
+            background-color: var(--accent-color);
+        }
+
+        .btn-ctrl:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        pre#detail-content {
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 1rem;
+            line-height: 1.4;
             color: var(--text-color);
-            margin: 0;
-            -webkit-font-smoothing: antialiased;
-            flex: 1;
+            background-color: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
         }
 
         .chord {
             color: var(--chord-color);
-            font-weight: 700;
-            background-color: transparent;
+            font-weight: bold;
         }
 
-        /* REŽIM PÓDIA (Full screen - skryje hlavičku, patičku a ovládací tlačítka velikosti, zachová nadpis) */
+        /* Stage Mode (Trojitý poklep) */
         body.stage-mode header,
         body.stage-mode footer,
-        body.stage-mode .font-controls {
-            opacity: 0;
-            pointer-events: none;
-            height: 0;
-            margin: 0;
-            padding: 0;
+        body.stage-mode .font-controls,
+        body.stage-mode .warning-banner {
+            display: none !important;
+        }
+
+        body.stage-mode main {
+            padding: 0.5rem;
+            max-width: 100%;
+        }
+
+        body.stage-mode pre#detail-content {
             border: none;
-            overflow: hidden;
+            background: transparent;
+            padding: 0.5rem 0;
         }
 
-        body.stage-mode {
-            padding: 2px;
-        }
-
-        body.stage-mode .song-detail {
-            border: none;
-            background-color: var(--bg-color);
-            padding: 4px;
-        }
-
-        body.stage-mode .song-header-detail {
-            border-bottom: none;
-            margin-bottom: 4px;
-            padding-bottom: 0;
-        }
-
-        /* Patička - Instagram uprostřed, tajná plocha vyplní zbytek doprava */
         footer {
-            padding: 5px 0 10px 0;
-            margin-top: 0;
-            font-size: 15px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background-color: var(--card-bg);
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
             position: relative;
-            -webkit-user-select: none;
-            user-select: none;
-            transition: opacity 0.3s, transform 0.3s;
         }
 
-        body:not(.light-theme) footer {
-            color: #ffffff;
-        }
-
-        body.light-theme footer {
-            color: #000000;
-        }
-
-        .footer-center {
+        .footer-content {
             display: flex;
-            align-items: center;
             justify-content: center;
-            gap: 15px;
-            margin: 0 auto;
-        }
-
-        footer a {
-            display: inline-flex;
             align-items: center;
-            text-decoration: none;
-            color: inherit;
-            transition: transform 0.2s;
+            gap: 1rem;
         }
 
-        footer a:hover {
-            transform: scale(1.05);
-        }
-
-        footer svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Tajná plocha zabírající celou pravou stranu od IG do kraje */
         .secret-trigger-area {
             position: absolute;
             right: 0;
             top: 0;
             bottom: 0;
-            left: 55%;
+            width: 60px;
             cursor: pointer;
+        }
+
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
 
-    <div class="main-container">
-        <header id="main-header">
-            <div id="header-title" class="header-title" onclick="goHome()">🔥 Zpívání povoleno 2.0</div>
-            <div class="header-controls">
-                <button class="btn-theme" id="btn-theme" onclick="toggleTheme(event)" title="Přepnout motiv">☀️</button>
+    <header>
+        <div class="header-content">
+            <div class="title-row">
+                <h1 onclick="goHome()">🔥 Zpívání povoleno 2.0</h1>
             </div>
-        </header>
-
-        <!-- POHLED 1: SEZNAM PÍSNÍ -->
-        <div id="view-list">
-            <div class="search-row">
-                <input type="text" class="search-box" id="search" placeholder="🔍 Hledat písničku nebo interpreta..." oninput="filterSongs()">
-                <button class="btn-random" onclick="selectRandomSong()" title="Náhodná písnička">🎲</button>
+            <div id="search-container" class="search-box">
+                <input type="text" id="search" placeholder="Hledat písničku nebo interpreta..." oninput="filterSongs()">
             </div>
-            <div class="song-list" id="song-list">
-                <div style="text-align: center; color: #888; padding: 20px;">Načítám seznam písní...</div>
-            </div>
-            
-            <!-- VAROVÁNÍ -->
-            <div class="warning-banner" id="warning-banner">
+            <div id="warning-banner" class="warning-banner">
                 <strong>Varování:</strong> Anděl, Stánky a Tři kříže mají ban! &nbsp; Zrušení zákazu 1 000 Kč/píseň ✌️
             </div>
         </div>
+    </header>
 
-        <!-- POHLED 2: DETAIL PÍSNĚ -->
+    <main>
+        <!-- Seznam písní -->
+        <div id="view-list" class="song-list"></div>
+
+        <!-- Detail písně -->
         <div id="view-detail" class="song-detail">
             <div class="song-header-detail">
                 <h2 class="song-title" id="detail-title"></h2>
                 <div class="font-controls">
+                    <button class="btn-ctrl" id="btn-prev" onclick="navigateSong(-1)" title="Předchozí písnička">◀</button>
+                    <button class="btn-ctrl" id="btn-next" onclick="navigateSong(1)" title="Následující písnička">▶</button>
                     <button class="btn-ctrl" onclick="changeFontSize(-1)">A-</button>
                     <button class="btn-ctrl" onclick="changeFontSize(1)">A+</button>
                 </div>
             </div>
-            <pre id="detail-content"></pre>
+            <pre id="detail-content">Načítám...</pre>
         </div>
-    </div>
+    </main>
 
-    <footer id="main-footer">
-        <div class="footer-center">
-            <a href="https://www.instagram.com/jonnyzduban/" 
-               target="_blank" 
-               rel="noopener noreferrer" 
-               title="Instagram">
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                    <defs>
-                        <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#fd5" />
-                            <stop offset="25%" stop-color="#ff543f" />
-                            <stop offset="50%" stop-color="#fc036f" />
-                            <stop offset="75%" stop-color="#c902b3" />
-                            <stop offset="100%" stop-color="#4f02ec" />
-                        </linearGradient>
-                    </defs>
-                    <path fill="url(#ig-gradient)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-            </a>
-            <a href="https://www.instagram.com/jonnyzduban/" target="_blank" rel="noopener noreferrer" title="Instagram">
-                <span>Jonnyzduban.</span>
-            </a>
-        </div>
-        
-        <!-- NEVIDITELNÁ PLOCHA OD KONCE IG AŽ PO PRAVÝ OKRAJ -->
-        <div class="secret-trigger-area"
-             onmousedown="startSecretTimer()"
-             onmouseup="cancelSecretTimer()"
-             ontouchstart="startSecretTimer()"
-             ontouchend="cancelSecretTimer()">
+    <footer>
+        <div class="footer-content">
+            <span>© Zpívání povoleno 2.0</span>
+            <div class="secret-trigger-area" id="secret-trigger"></div>
         </div>
     </footer>
 
     <script>
+        const GITHUB_REPO = "YOUR_USER/YOUR_REPO";
         let allSongs = [];
         let secretSongs = [];
         let currentFilteredSongs = [];
-        let currentFontSize = 14;
-        let wakeLock = null;
-        let secretTimer = null;
+        let currentSongIndex = -1;
         let isInSecretMode = false;
-        
-        let clickCount = 0;
-        let clickTimer = null;
+        let wakeLock = null;
+        let currentFontSize = 16;
 
-        function initApp() {
-            initTheme();
+        function removeAccents(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        }
 
-            const cachedSongs = localStorage.getItem('cached_songs');
-            if (cachedSongs) {
-                try {
-                    allSongs = JSON.parse(cachedSongs);
-                    renderSongList(allSongs);
-                } catch (e) {}
+        function cleanTitle(rawName) {
+            return rawName.replace(/_/g, ' ').replace(/\.txt$/i, '');
+        }
+
+        function formatTitle(title) {
+            const parts = title.split(' - ');
+            if (parts.length > 1) {
+                return `<span>${parts[0]}</span> <br><small class="song-artist">${parts[1]}</small>`;
             }
+            return `<span>${title}</span>`;
+        }
 
-            if (window.location.hash === '#secret') {
-                loadSecretSongs(true);
-            } else {
-                if (window.location.hash && window.location.hash !== '#secret') {
-                    history.replaceState(null, '', window.location.pathname);
-                }
-                fetchSongList();
-            }
+        async function initApp() {
+            await fetchSongList();
 
-            const detailContainer = document.getElementById('view-detail');
-            detailContainer.addEventListener('click', (e) => {
-                if (e.target.closest('button') || e.target.closest('.font-controls')) {
-                    return;
-                }
-
-                clickCount++;
-
-                if (clickCount === 1) {
-                    clickTimer = setTimeout(() => {
-                        clickCount = 0;
-                    }, 500); 
-                } else if (clickCount === 3) {
-                    clearTimeout(clickTimer);
-                    clickCount = 0;
-                    toggleStageMode();
-                    e.preventDefault();
+            window.addEventListener('popstate', (e) => {
+                if (e.state && e.state.view === 'detail') {
+                    // Ponechat v detailu
+                } else {
+                    showListUI();
                 }
             });
-        }
 
-        function toggleStageMode() {
-            if (document.getElementById('view-detail').style.display === 'flex') {
-                document.body.classList.toggle('stage-mode');
-                setTimeout(autoFitFont, 50);
-            }
-        }
+            // Klávesové zkratky pro přepínání písní (šipky vlevo / vpravo)
+            window.addEventListener('keydown', (e) => {
+                const detailElem = document.getElementById('view-detail');
+                if (detailElem.style.display === 'flex') {
+                    if (e.key === 'ArrowLeft') {
+                        navigateSong(-1);
+                    } else if (e.key === 'ArrowRight') {
+                        navigateSong(1);
+                    }
+                }
+            });
 
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const themeBtn = document.getElementById('btn-theme');
-            
-            if (savedTheme === 'light') {
-                document.body.classList.add('light-theme');
-                themeBtn.innerText = '🌙';
-            } else {
-                themeBtn.innerText = '☀️';
-            }
-        }
-
-        function toggleTheme(event) {
-            if (event) event.stopPropagation();
-            const body = document.body;
-            const themeBtn = document.getElementById('btn-theme');
-            body.classList.toggle('light-theme');
-            
-            if (body.classList.contains('light-theme')) {
-                localStorage.setItem('theme', 'light');
-                themeBtn.innerText = '🌙';
-            } else {
-                localStorage.setItem('theme', 'dark');
-                themeBtn.innerText = '☀️';
-            }
+            setupSecretTrigger();
+            setupSwipeEvents();
+            setupStageMode();
         }
 
         async function fetchSongList() {
-            const listContainer = document.getElementById('song-list');
             try {
-                const pathParts = window.location.pathname.split('/').filter(p => p);
-                const hostnameParts = window.location.hostname.split('.');
-                let songs = [];
-
-                if (window.location.hostname.includes('github.io')) {
-                    const user = hostnameParts[0];
-                    const repo = pathParts[0] || '';
-                    const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/`;
-
-                    const response = await fetch(apiUrl);
-                    if (response.ok) {
-                        const files = await response.json();
-                        songs = files
-                            .filter(file => file.name.endsWith('.txt'))
-                            .map(file => ({
-                                formattedName: formatTitle(file.name),
-                                rawName: cleanTitle(file.name),
-                                url: file.download_url
-                            }));
-                    }
+                let response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/`);
+                let data = [];
+                
+                if (response.ok) {
+                    data = await response.json();
+                } else {
+                    const localRes = await fetch('songs.json');
+                    data = await localRes.json();
                 }
 
-                if (songs.length === 0) {
-                    const res = await fetch('songs.json').catch(() => null);
-                    if (res && res.ok) {
-                        const fileNames = await res.json();
-                        songs = fileNames.map(name => ({
-                            formattedName: formatTitle(name),
-                            rawName: cleanTitle(name),
-                            url: name
-                        }));
-                    }
-                }
+                allSongs = data
+                    .filter(file => file.name.endsWith('.txt'))
+                    .map(file => ({
+                        rawName: cleanTitle(file.name),
+                        formattedName: formatTitle(cleanTitle(file.name)),
+                        url: file.download_url || file.path || file.name,
+                        isSecret: false
+                    }));
 
-                if (songs.length > 0) {
-                    songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
-                    allSongs = songs;
-                    localStorage.setItem('cached_songs', JSON.stringify(songs));
-                    if (!isInSecretMode && window.location.hash !== '#detail') {
-                        renderSongList(allSongs);
-                    }
-                } else if (allSongs.length === 0) {
-                    listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné písně nenalezeny.</div>';
-                }
-
+                currentFilteredSongs = [...allSongs];
+                renderSongList(currentFilteredSongs);
             } catch (err) {
-                if (allSongs.length === 0) {
-                    listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání souborů.</div>';
-                }
+                console.error("Chyba při načítání seznamu písní:", err);
+                document.getElementById('view-list').innerHTML = "<p style='text-align:center;'>Nepodařilo se načíst seznam písniček.</p>";
             }
-        }
-
-        function cleanTitle(filename) {
-            let name = filename.replace(/\.txt$/i, '').replace(/_/g, ' ').trim();
-            if (name === name.toUpperCase()) name = name.toLowerCase();
-            return name.charAt(0).toUpperCase() + name.slice(1);
-        }
-
-        function formatTitle(filename) {
-            const fullTitle = cleanTitle(filename);
-            const parts = fullTitle.split('-');
-            if (parts.length > 1) {
-                const songName = parts[0].trim();
-                const artistName = parts.slice(1).join('-').trim();
-                return `${songName} <span class="artist-name">- ${artistName}</span>`;
-            }
-            return fullTitle;
         }
 
         function renderSongList(songs) {
-            currentFilteredSongs = songs;
-            const listContainer = document.getElementById('song-list');
-            if (songs.length === 0) return;
-            
-            const borderColor = isInSecretMode ? 'var(--accent-color)' : 'var(--border-color)';
-            
-            listContainer.innerHTML = songs.map((song, index) => `
-                <div class="song-item" onclick="openSongByIndex(${index})" style="border-color: ${borderColor};">
-                    <div><span class="song-number">${index + 1}.</span>${song.formattedName}</div>
-                </div>
-            `).join('');
+            const listElem = document.getElementById('view-list');
+            listElem.innerHTML = '';
+
+            if (songs.length === 0) {
+                listElem.innerHTML = "<p style='text-align:center; color: var(--text-muted);'>Žádná písnička nenalezena.</p>";
+                return;
+            }
+
+            songs.forEach((song, index) => {
+                const item = document.createElement('div');
+                item.className = `song-item ${song.isSecret ? 'secret-item' : ''}`;
+                item.onclick = () => openSongByIndex(index);
+
+                item.innerHTML = `
+                    <div class="song-info">
+                        <div>
+                            <span class="song-number">${index + 1}.</span>
+                            <span class="song-title-text">${song.formattedName}</span>
+                        </div>
+                    </div>
+                    ${song.isSecret ? '🔒' : '❯'}
+                `;
+                listElem.appendChild(item);
+            });
         }
 
         function filterSongs() {
-            const query = document.getElementById('search').value.toLowerCase();
+            const query = removeAccents(document.getElementById('search').value.toLowerCase());
             const dataSource = isInSecretMode ? secretSongs : allSongs;
-            const filtered = dataSource.filter(s => s.rawName.toLowerCase().includes(query));
-            renderSongList(filtered);
-        }
-
-        function resetSearch() {
-            const searchInput = document.getElementById('search');
-            if (searchInput) searchInput.value = '';
-            renderSongList(isInSecretMode ? secretSongs : allSongs);
-        }
-
-        function selectRandomSong() {
-            const dataSource = isInSecretMode ? secretSongs : allSongs;
-            if (dataSource.length === 0) return;
-            const randomIndex = Math.floor(Math.random() * dataSource.length);
-            openSongByIndex(randomIndex);
+            
+            currentFilteredSongs = dataSource.filter(s => 
+                removeAccents(s.rawName.toLowerCase()).includes(query)
+            );
+            
+            renderSongList(currentFilteredSongs);
         }
 
         function openSongByIndex(index) {
-            const dataSource = isInSecretMode ? secretSongs : allSongs;
-            const song = currentFilteredSongs[index] || dataSource[index];
-            if (!song) return;
+            if (index < 0 || index >= currentFilteredSongs.length) return;
 
-            const realIndex = dataSource.findIndex(s => s.url === song.url);
-            
+            currentSongIndex = index;
+            const song = currentFilteredSongs[currentSongIndex];
+
             history.pushState({ view: 'detail', isSecret: isInSecretMode }, '', '#detail');
-            showDetailUI(song, realIndex !== -1 ? realIndex + 1 : index + 1);
+            showDetailUI(song, currentSongIndex + 1);
         }
 
         async function showDetailUI(song, songNumber) {
@@ -649,217 +454,194 @@
             document.getElementById('view-list').style.display = 'none';
             document.getElementById('view-detail').style.display = 'flex';
             document.getElementById('detail-title').innerHTML = `<span style="color: var(--accent-color);">${songNumber}.</span> ${song.formattedName}`;
-            
+
+            updateNavButtons();
             await requestWakeLock();
             openSongContent(song.url);
         }
 
+        function updateNavButtons() {
+            const prevBtn = document.getElementById('btn-prev');
+            const nextBtn = document.getElementById('btn-next');
+
+            if (prevBtn && nextBtn) {
+                prevBtn.disabled = currentSongIndex <= 0;
+                nextBtn.disabled = currentSongIndex >= currentFilteredSongs.length - 1;
+            }
+        }
+
+        function navigateSong(direction) {
+            if (currentFilteredSongs.length === 0) return;
+
+            let newIndex = currentSongIndex + direction;
+
+            if (newIndex < 0 || newIndex >= currentFilteredSongs.length) return;
+
+            openSongByIndex(newIndex);
+        }
+
         async function openSongContent(url) {
             const contentElem = document.getElementById('detail-content');
-            contentElem.innerText = "Načítám...";
+            contentElem.innerText = "Načítám text...";
 
             try {
-                const targetUrl = url.startsWith('http') ? url : encodeURIComponent(url);
+                const targetUrl = url.startsWith('http') ? encodeURI(url) : encodeURIComponent(url);
                 const response = await fetch(targetUrl);
-                
-                if (!response.ok) throw new Error("Soubor nelze stáhnout");
-                
+
+                if (!response.ok) throw new Error("Nelze načíst text písně");
+
                 const text = await response.text();
                 contentElem.innerHTML = highlightChords(text);
-                
-                setTimeout(autoFitFont, 20);
+                autoFitFont();
             } catch (err) {
-                contentElem.innerText = "Chyba při načítání písně.";
+                contentElem.innerText = "Chyba při načítání textu písničky.";
             }
 
             window.scrollTo(0, 0);
         }
 
-        async function requestWakeLock() {
-            if ('wakeLock' in navigator) {
-                try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                } catch (err) {}
-            }
-        }
-
-        async function releaseWakeLock() {
-            if (wakeLock !== null) {
-                try {
-                    await wakeLock.release();
-                    wakeLock = null;
-                } catch (err) {}
-            }
-        }
-
-        function autoFitFont() {
-            const contentElem = document.getElementById('detail-content');
-            let size = 16;
-            contentElem.style.fontSize = size + 'px';
-            const containerWidth = contentElem.clientWidth;
-            
-            while (contentElem.scrollWidth > containerWidth && size > 7) {
-                size -= 0.5;
-                contentElem.style.fontSize = size + 'px';
-            }
-            currentFontSize = size;
-        }
-
-        function changeFontSize(delta) {
-            currentFontSize = Math.max(7, Math.min(32, currentFontSize + delta));
-            document.getElementById('detail-content').style.fontSize = currentFontSize + 'px';
-        }
-
-        function goHome() {
-            document.body.classList.remove('stage-mode');
-            history.replaceState({ view: 'list' }, '', window.location.pathname);
-            showListUI(false);
-            if (allSongs.length > 0) {
-                renderSongList(allSongs);
-            } else {
-                fetchSongList();
-            }
-        }
-
-        async function showListUI(fromPopState = false, restoreSecret = false) {
-            await releaseWakeLock();
-            document.body.classList.remove('stage-mode');
-            
-            if (!restoreSecret) {
-                isInSecretMode = false;
-                const warningBanner = document.getElementById('warning-banner');
-                if (warningBanner) warningBanner.style.display = 'block';
-                resetSearch();
-            }
-
-            document.getElementById('view-list').style.display = 'block';
-            document.getElementById('view-detail').style.display = 'none';
-            if (!fromPopState) {
-                window.scrollTo(0, 0);
-            }
-        }
-
         function highlightChords(text) {
-            const chordRegex = /\b([A-H][b#]?(m|maj|mi|dim|aug|sus)?[0-9]?(\/[A-H][b#]?)?)\b/g;
-
-            return text.split('\n').map(line => {
-                const hasLongWords = /[a-čďéěíňóřšťúůýžA-ČĎÉĚÍŇÓŘŠŤÚŮÝŽ]{4,}/.test(line);
-                if (hasLongWords) {
-                    return line;
+            const lines = text.split('\n');
+            return lines.map(line => {
+                const isChordLine = /^[A-H1-9#bmi/+\s\(\)]+$/i.test(line.trim()) && line.trim().length > 0;
+                
+                if (isChordLine) {
+                    return line.replace(/([A-H][b#]?[m]?[0-9]?[a-z0-9/\+]*)/g, '<span class="chord">$1</span>');
                 }
-                return line.replace(chordRegex, '<span class="chord">$1</span>');
+                return line;
             }).join('\n');
         }
 
-        function startSecretTimer() {
-            secretTimer = setTimeout(() => {
-                loadSecretSongs(false);
-            }, 1500);
+        function changeFontSize(delta) {
+            currentFontSize = Math.max(12, Math.min(28, currentFontSize + delta));
+            document.getElementById('detail-content').style.fontSize = `${currentFontSize}px`;
         }
 
-        function cancelSecretTimer() {
-            if (secretTimer) {
-                clearTimeout(secretTimer);
-                secretTimer = null;
-            }
+        function autoFitFont() {
+            currentFontSize = 16;
+            document.getElementById('detail-content').style.fontSize = `${currentFontSize}px`;
         }
 
-        async function loadSecretSongs(isInitialLoad = false) {
-            isInSecretMode = true;
-            
-            if (!isInitialLoad) {
-                history.pushState({ view: 'secret' }, '', '#secret');
-            }
+        function showListUI() {
+            document.body.classList.remove('stage-mode');
+            document.getElementById('view-list').style.display = 'flex';
+            document.getElementById('view-detail').style.display = 'none';
+            releaseWakeLock();
+        }
 
-            const warningBanner = document.getElementById('warning-banner');
-            if (warningBanner) warningBanner.style.display = 'none';
+        function goHome() {
+            document.getElementById('search').value = '';
+            currentFilteredSongs = isInSecretMode ? [...secretSongs] : [...allSongs];
+            renderSongList(currentFilteredSongs);
+            showListUI();
+            history.pushState(null, '', ' ');
+        }
 
-            const listContainer = document.getElementById('song-list');
-            
-            if (secretSongs.length === 0) {
-                listContainer.innerHTML = '<div style="text-align: center; color: var(--accent-color); padding: 20px;">🔓 Načítám tajný repertoár...</div>';
-            } else {
-                renderSongList(secretSongs);
-                document.getElementById('search').value = '';
-                return;
-            }
-            
+        async function requestWakeLock() {
             try {
-                const pathParts = window.location.pathname.split('/').filter(p => p);
-                const hostnameParts = window.location.hostname.split('.');
-                let songs = [];
-
-                if (window.location.hostname.includes('github.io')) {
-                    const user = hostnameParts[0];
-                    const repo = pathParts[0] || '';
-                    const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/secret`;
-
-                    const response = await fetch(apiUrl);
-                    if (response.ok) {
-                        const files = await response.json();
-                        songs = files
-                            .filter(file => file.name.endsWith('.txt'))
-                            .map(file => ({
-                                formattedName: "🔒 " + formatTitle(file.name),
-                                rawName: cleanTitle(file.name),
-                                url: file.download_url
-                            }));
-                    }
-                }
-
-                if (songs.length > 0) {
-                    songs.sort((a, b) => a.rawName.localeCompare(b.rawName, 'cs', { sensitivity: 'base' }));
-                    secretSongs = songs;
-                    renderSongList(secretSongs);
-                    document.getElementById('search').value = '';
-                    if (!isInitialLoad) {
-                        window.scrollTo(0, 0);
-                    }
-                } else {
-                    listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Žádné tajné písně nenalezeny.</div>';
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
                 }
             } catch (err) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Chyba při načítání tajných písní.</div>';
+                console.log("Wake Lock nelze aktivovat:", err);
             }
         }
 
-        window.addEventListener('popstate', (event) => {
-            const state = event.state;
-            document.body.classList.remove('stage-mode');
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
 
-            if (!state || state.view === 'list' || window.location.hash === '') {
-                showListUI(true, false);
-                if (allSongs.length > 0) renderSongList(allSongs);
-                fetchSongList();
-            } else if (state.view === 'secret') {
-                showListUI(true, true);
-                loadSecretSongs(true);
-            } else if (state.view === 'detail') {
-                if (state.isSecret) {
-                    isInSecretMode = true;
-                    if (secretSongs.length > 0) {
-                        renderSongList(secretSongs);
-                    } else {
-                        loadSecretSongs(true);
+        function setupSecretTrigger() {
+            const trigger = document.getElementById('secret-trigger');
+            let timer = null;
+
+            const startTimer = () => {
+                timer = setTimeout(toggleSecretMode, 1500);
+            };
+
+            const clearTimer = () => {
+                if (timer) clearTimeout(timer);
+            };
+
+            trigger.addEventListener('touchstart', startTimer, { passive: true });
+            trigger.addEventListener('touchend', clearTimer, { passive: true });
+            trigger.addEventListener('mousedown', startTimer);
+            trigger.addEventListener('mouseup', clearTimer);
+            trigger.addEventListener('mouseleave', clearTimer);
+        }
+
+        async function toggleSecretMode() {
+            isInSecretMode = !isInSecretMode;
+            const warningBanner = document.getElementById('warning-banner');
+
+            if (isInSecretMode) {
+                warningBanner.classList.add('hidden');
+                if (secretSongs.length === 0) {
+                    try {
+                        const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/secret`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            secretSongs = data.map(file => ({
+                                rawName: cleanTitle(file.name),
+                                formattedName: formatTitle(cleanTitle(file.name)),
+                                url: file.download_url,
+                                isSecret: true
+                            }));
+                        }
+                    } catch (e) {
+                        console.error("Tajné písně se nepodařilo načíst", e);
                     }
-                } else {
-                    isInSecretMode = false;
-                    if (allSongs.length > 0) renderSongList(allSongs);
                 }
-                document.getElementById('view-list').style.display = 'none';
-                document.getElementById('view-detail').style.display = 'flex';
+                currentFilteredSongs = [...secretSongs];
+            } else {
+                warningBanner.classList.remove('hidden');
+                currentFilteredSongs = [...allSongs];
             }
-        });
 
-        document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') {
-                await requestWakeLock();
-            }
-        });
+            document.getElementById('search').value = '';
+            renderSongList(currentFilteredSongs);
+            showListUI();
+        }
 
-        window.onload = () => {
-            initApp();
-        };
+        function setupSwipeEvents() {
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const detailElem = document.getElementById('view-detail');
+
+            detailElem.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            detailElem.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                const swipeDistance = touchEndX - touchStartX;
+                if (swipeDistance < -75) navigateSong(1);
+                if (swipeDistance > 75) navigateSong(-1);
+            }, { passive: true });
+        }
+
+        function setupStageMode() {
+            let clickCount = 0;
+            let clickTimer = null;
+
+            document.getElementById('view-detail').addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('.font-controls')) return;
+
+                clickCount++;
+                if (clickCount === 1) {
+                    clickTimer = setTimeout(() => { clickCount = 0; }, 400);
+                } else if (clickCount === 3) {
+                    clearTimeout(clickTimer);
+                    clickCount = 0;
+                    document.body.classList.toggle('stage-mode');
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>

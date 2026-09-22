@@ -219,7 +219,7 @@
             color: #ff3b30;
         }
 
-        /* Detail Písně & Instagram Stories 3D Efekt */
+        /* Detail Písně */
         .song-detail {
             display: none;
             background-color: var(--card-bg);
@@ -230,9 +230,6 @@
             flex: 1;
             flex-direction: column;
             position: relative;
-            /* 3D Perspektiva pro Instagram efekt */
-            perspective: 1200px;
-            perspective-origin: 50% 50%;
         }
 
         .song-header-detail {
@@ -277,14 +274,7 @@
             flex: 1;
             will-change: transform, opacity;
             touch-action: pan-y;
-            /* Bod otáčení na hraně kostky */
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
-        }
-
-        /* Plynulé dokončení rotace kostky po puštění prstu */
-        pre.animate-cube {
-            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out;
+            transition: transform 0.25s ease-out, opacity 0.25s ease-out;
         }
 
         .chord {
@@ -467,12 +457,9 @@
         let clickCount = 0;
         let clickTimer = null;
 
-        // Proměnné pro Instagram Stories 3D Cube efekt
-        let startX = 0;
-        let startY = 0;
-        let currentDeltaX = 0;
-        let isDragging = false;
-        let isHorizontalSwipe = false;
+        // Gesta pro přejetí prstem (Original Slide Transition)
+        let touchStartX = 0;
+        let touchStartY = 0;
 
         function initApp() {
             initTheme();
@@ -512,93 +499,40 @@
                 }
             });
 
-            // INSTAGRAM STORIES 3D DRAG EFEEKT
+            // Gesta pro posun písní
             contentElem.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            contentElem.addEventListener('touchend', (e) => {
                 if (isAnimating) return;
-                startX = e.touches[0].clientX;
-                startY = e.touches[0].clientY;
-                isDragging = true;
-                isHorizontalSwipe = false;
-                currentDeltaX = 0;
-                contentElem.classList.remove('animate-cube');
-            }, { passive: true });
-
-            contentElem.addEventListener('touchmove', (e) => {
-                if (!isDragging || isAnimating) return;
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
                 
-                const deltaX = e.touches[0].clientX - startX;
-                const deltaY = e.touches[0].clientY - startY;
+                const diffX = touchEndX - touchStartX;
+                const diffY = touchEndY - touchStartY;
 
-                if (!isHorizontalSwipe) {
-                    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
-                        isHorizontalSwipe = true;
-                    } else if (Math.abs(deltaY) > 8) {
-                        isDragging = false;
-                        return;
-                    }
-                }
-
-                if (isHorizontalSwipe) {
-                    currentDeltaX = deltaX;
-                    const containerWidth = window.innerWidth;
-                    const ratio = deltaX / containerWidth;
-                    
-                    // Výpočet 3D rotace kostky podle vzdálenosti prstu
-                    const rotateY = ratio * 90; // max 90 stupňů
-                    const opacity = Math.max(0.3, 1 - Math.abs(ratio) * 0.7);
-                    
-                    if (deltaX < 0) {
-                        // Posun do leva -> stěna se otáčí vlevo
-                        contentElem.style.transformOrigin = '100% 50%';
-                        contentElem.style.transform = `translateX(${deltaX}px) rotateY(${rotateY}deg)`;
+                if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
+                    if (diffX < 0) {
+                        navigateSong(1);
                     } else {
-                        // Posun do prava -> stěna se otáčí vpravo
-                        contentElem.style.transformOrigin = '0% 50%';
-                        contentElem.style.transform = `translateX(${deltaX}px) rotateY(${rotateY}deg)`;
+                        navigateSong(-1);
                     }
-                    contentElem.style.opacity = opacity;
                 }
             }, { passive: true });
-
-            contentElem.addEventListener('touchend', () => {
-                if (!isDragging || !isHorizontalSwipe || isAnimating) {
-                    isDragging = false;
-                    return;
-                }
-                isDragging = false;
-                
-                const threshold = window.innerWidth * 0.2; // 20 % šířky obrazovky pro překlopení
-                
-                if (currentDeltaX < -threshold) {
-                    switchSongWithCubeAnimation(1);
-                } else if (currentDeltaX > threshold) {
-                    switchSongWithCubeAnimation(-1);
-                } else {
-                    // Vracíme kostku zpět na čelní pohled
-                    contentElem.classList.add('animate-cube');
-                    contentElem.style.transformOrigin = '50% 50%';
-                    contentElem.style.transform = 'translateX(0px) rotateY(0deg)';
-                    contentElem.style.opacity = '1';
-                }
-            });
         }
 
-        // Dokončení 3D rotace kostky a načtení nové píseň
-        function switchSongWithCubeAnimation(direction) {
+        // Původní plynulý posun obrazovky z boku
+        function navigateSong(direction) {
+            if (isAnimating) return;
             isAnimating = true;
+
             const contentElem = document.getElementById('detail-content');
             const dataSource = isInSecretMode ? secretSongs : allSongs;
             
-            contentElem.classList.add('animate-cube');
-            
-            // Dokončení 3D rotace o 90 stupňů pryč z obrazovky
-            if (direction === 1) {
-                contentElem.style.transformOrigin = '100% 50%';
-                contentElem.style.transform = `translateX(-${window.innerWidth}px) rotateY(-90deg)`;
-            } else {
-                contentElem.style.transformOrigin = '0% 50%';
-                contentElem.style.transform = `translateX(${window.innerWidth}px) rotateY(90deg)`;
-            }
+            // Odjezd staré písničky
+            contentElem.style.transform = `translateX(${direction === 1 ? '-100px' : '100px'})`;
             contentElem.style.opacity = '0';
 
             setTimeout(() => {
@@ -611,37 +545,25 @@
 
                 const song = dataSource[currentSongIndex];
                 
-                // Připravíme druhou stěnu kostky na protější straně
-                contentElem.classList.remove('animate-cube');
-                if (direction === 1) {
-                    contentElem.style.transformOrigin = '0% 50%';
-                    contentElem.style.transform = `translateX(${window.innerWidth}px) rotateY(90deg)`;
-                } else {
-                    contentElem.style.transformOrigin = '100% 50%';
-                    contentElem.style.transform = `translateX(-${window.innerWidth}px) rotateY(-90deg)`;
-                }
+                // Příprava nové písničky na druhé straně
+                contentElem.style.transition = 'none';
+                contentElem.style.transform = `translateX(${direction === 1 ? '100px' : '-100px'})`;
 
                 showDetailUI(song, currentSongIndex + 1).then(() => {
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
-                            contentElem.classList.add('animate-cube');
-                            contentElem.style.transform = 'translateX(0px) rotateY(0deg)';
+                            // Příjezd nové písničky
+                            contentElem.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out';
+                            contentElem.style.transform = 'translateX(0)';
                             contentElem.style.opacity = '1';
 
                             setTimeout(() => {
-                                contentElem.classList.remove('animate-cube');
-                                contentElem.style.transformOrigin = '50% 50%';
                                 isAnimating = false;
-                            }, 300);
+                            }, 250);
                         });
                     });
                 });
-            }, 250);
-        }
-
-        function navigateSong(direction) {
-            if (isAnimating) return;
-            switchSongWithCubeAnimation(direction);
+            }, 200);
         }
 
         function toggleStageMode() {
@@ -809,9 +731,15 @@
 
         async function openSongContent(url) {
             const contentElem = document.getElementById('detail-content');
+            
+            // Časový limit (timeout) pro stažení souboru
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000);
+
             try {
                 const targetUrl = url.startsWith('http') ? url : encodeURIComponent(url);
-                const response = await fetch(targetUrl);
+                const response = await fetch(targetUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
                 
                 if (!response.ok) throw new Error("Soubor nelze stáhnout");
                 
@@ -820,7 +748,12 @@
                 
                 setTimeout(autoFitFont, 20);
             } catch (err) {
-                contentElem.innerText = "Chyba při načítání písně.";
+                clearTimeout(timeoutId);
+                if (err.name === 'AbortError') {
+                    contentElem.innerText = "⚠️ Pomalé připojení. Písničku se nepodařilo načíst.";
+                } else {
+                    contentElem.innerText = "⚠️ Chyba při načítání písně.";
+                }
             }
 
             window.scrollTo(0, 0);

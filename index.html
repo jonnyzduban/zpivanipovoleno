@@ -47,6 +47,7 @@
             display: flex;
             flex-direction: column;
             transition: background-color 0.2s, color 0.2s;
+            overflow-x: hidden;
         }
 
         .main-container {
@@ -225,11 +226,11 @@
             padding: 10px;
             border-radius: 10px;
             border: 1px solid var(--border-color);
-            overflow-x: auto;
+            overflow-x: hidden;
             flex: 1;
             flex-direction: column;
-            transition: all 0.3s ease;
             touch-action: pan-y;
+            position: relative;
         }
 
         .song-header-detail {
@@ -272,6 +273,29 @@
             margin: 0;
             -webkit-font-smoothing: antialiased;
             flex: 1;
+            transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease-out;
+            will-change: transform, opacity;
+        }
+
+        /* Třídy pro animace přechodů */
+        .slide-out-left {
+            transform: translateX(-100px);
+            opacity: 0;
+        }
+
+        .slide-out-right {
+            transform: translateX(100px);
+            opacity: 0;
+        }
+
+        .slide-in-left {
+            transform: translateX(-100px);
+            opacity: 0;
+        }
+
+        .slide-in-right {
+            transform: translateX(100px);
+            opacity: 0;
         }
 
         .chord {
@@ -449,6 +473,7 @@
         let secretTimer = null;
         let isInSecretMode = false;
         let currentSongIndex = -1;
+        let isAnimating = false;
         
         let clickCount = 0;
         let clickTimer = null;
@@ -515,18 +540,17 @@
         }
 
         function handleSwipe() {
+            if (isAnimating) return;
             const diffX = touchEndX - touchStartX;
             const diffY = touchEndY - touchStartY;
 
-            // Kontrola, aby šlo o horizontální posun (nikoliv skrolování dolů/nahoru)
+            // Kontrola, aby šlo o horizontální posun
             if (Math.abs(diffX) > Math.abs(diffY)) {
-                const swipeThreshold = 50; // Minimální vzdálenost v pixelech pro detekci swipe
+                const swipeThreshold = 40; 
                 if (diffX < -swipeThreshold) {
-                    // Posun doprava -> doleva = Další píseň
-                    navigateSong(1);
+                    navigateSong(1); // Další píseň
                 } else if (diffX > swipeThreshold) {
-                    // Posun doleva -> doprava = Předchozí píseň
-                    navigateSong(-1);
+                    navigateSong(-1); // Předchozí píseň
                 }
             }
         }
@@ -684,18 +708,44 @@
         }
 
         function navigateSong(direction) {
+            if (isAnimating) return;
             const dataSource = isInSecretMode ? secretSongs : allSongs;
             if (dataSource.length === 0) return;
 
-            currentSongIndex += direction;
-            if (currentSongIndex < 0) {
-                currentSongIndex = dataSource.length - 1;
-            } else if (currentSongIndex >= dataSource.length) {
-                currentSongIndex = 0;
-            }
+            isAnimating = true;
+            const contentElem = document.getElementById('detail-content');
 
-            const song = dataSource[currentSongIndex];
-            showDetailUI(song, currentSongIndex + 1);
+            // Přidáme animaci odjezdu podle směru
+            const outClass = direction === 1 ? 'slide-out-left' : 'slide-out-right';
+            contentElem.classList.add(outClass);
+
+            setTimeout(() => {
+                currentSongIndex += direction;
+                if (currentSongIndex < 0) {
+                    currentSongIndex = dataSource.length - 1;
+                } else if (currentSongIndex >= dataSource.length) {
+                    currentSongIndex = 0;
+                }
+
+                const song = dataSource[currentSongIndex];
+                
+                // Připravíme pozici pro nájezd nové písně
+                contentElem.classList.remove(outClass);
+                const inClass = direction === 1 ? 'slide-in-right' : 'slide-in-left';
+                contentElem.classList.add(inClass);
+
+                showDetailUI(song, currentSongIndex + 1).then(() => {
+                    // Plynulé vjetí z druhé strany
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            contentElem.classList.remove(inClass);
+                            setTimeout(() => {
+                                isAnimating = false;
+                            }, 250);
+                        });
+                    });
+                });
+            }, 200);
         }
 
         async function showDetailUI(song, songNumber) {
@@ -706,13 +756,11 @@
             document.getElementById('detail-title').innerHTML = `<span style="color: var(--accent-color);">${songNumber}.</span> ${song.formattedName}`;
             
             await requestWakeLock();
-            openSongContent(song.url);
+            await openSongContent(song.url);
         }
 
         async function openSongContent(url) {
             const contentElem = document.getElementById('detail-content');
-            contentElem.innerText = "Načítám...";
-
             try {
                 const targetUrl = url.startsWith('http') ? url : encodeURIComponent(url);
                 const response = await fetch(targetUrl);

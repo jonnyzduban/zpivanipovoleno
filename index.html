@@ -219,7 +219,7 @@
             color: #ff3b30;
         }
 
-        /* Detail Písně */
+        /* Detail Písně & Instagram Stories 3D Efekt */
         .song-detail {
             display: none;
             background-color: var(--card-bg);
@@ -230,6 +230,9 @@
             flex: 1;
             flex-direction: column;
             position: relative;
+            /* 3D Perspektiva pro Instagram efekt */
+            perspective: 1200px;
+            perspective-origin: 50% 50%;
         }
 
         .song-header-detail {
@@ -274,11 +277,14 @@
             flex: 1;
             will-change: transform, opacity;
             touch-action: pan-y;
+            /* Bod otáčení na hraně kostky */
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
         }
 
-        /* Tranzice při puštění prstu nebo kliknutí tlačítka */
-        pre.animate-swipe {
-            transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+        /* Plynulé dokončení rotace kostky po puštění prstu */
+        pre.animate-cube {
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out;
         }
 
         .chord {
@@ -461,7 +467,7 @@
         let clickCount = 0;
         let clickTimer = null;
 
-        // Proměnné pro plynulé drag gesta (Touch & Mouse)
+        // Proměnné pro Instagram Stories 3D Cube efekt
         let startX = 0;
         let startY = 0;
         let currentDeltaX = 0;
@@ -491,7 +497,7 @@
             const detailContainer = document.getElementById('view-detail');
             const contentElem = document.getElementById('detail-content');
             
-            // Detekce trojitého poklepání pro Stage Mode
+            // Detekce trojitého poklepání
             detailContainer.addEventListener('click', (e) => {
                 if (e.target.closest('button') || e.target.closest('.font-controls')) return;
 
@@ -506,7 +512,7 @@
                 }
             });
 
-            // REÁLNÝ POSUN TEXTU PRSTEM (TOUCH EVENTS)
+            // INSTAGRAM STORIES 3D DRAG EFEEKT
             contentElem.addEventListener('touchstart', (e) => {
                 if (isAnimating) return;
                 startX = e.touches[0].clientX;
@@ -514,7 +520,7 @@
                 isDragging = true;
                 isHorizontalSwipe = false;
                 currentDeltaX = 0;
-                contentElem.classList.remove('animate-swipe');
+                contentElem.classList.remove('animate-cube');
             }, { passive: true });
 
             contentElem.addEventListener('touchmove', (e) => {
@@ -523,7 +529,6 @@
                 const deltaX = e.touches[0].clientX - startX;
                 const deltaY = e.touches[0].clientY - startY;
 
-                // Rozpoznání horizontálního pohybu
                 if (!isHorizontalSwipe) {
                     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
                         isHorizontalSwipe = true;
@@ -535,8 +540,22 @@
 
                 if (isHorizontalSwipe) {
                     currentDeltaX = deltaX;
-                    const opacity = Math.max(0.2, 1 - Math.abs(deltaX) / (window.innerWidth * 0.8));
-                    contentElem.style.transform = `translateX(${deltaX}px)`;
+                    const containerWidth = window.innerWidth;
+                    const ratio = deltaX / containerWidth;
+                    
+                    // Výpočet 3D rotace kostky podle vzdálenosti prstu
+                    const rotateY = ratio * 90; // max 90 stupňů
+                    const opacity = Math.max(0.3, 1 - Math.abs(ratio) * 0.7);
+                    
+                    if (deltaX < 0) {
+                        // Posun do leva -> stěna se otáčí vlevo
+                        contentElem.style.transformOrigin = '100% 50%';
+                        contentElem.style.transform = `translateX(${deltaX}px) rotateY(${rotateY}deg)`;
+                    } else {
+                        // Posun do prava -> stěna se otáčí vpravo
+                        contentElem.style.transformOrigin = '0% 50%';
+                        contentElem.style.transform = `translateX(${deltaX}px) rotateY(${rotateY}deg)`;
+                    }
                     contentElem.style.opacity = opacity;
                 }
             }, { passive: true });
@@ -548,34 +567,38 @@
                 }
                 isDragging = false;
                 
-                const threshold = window.innerWidth * 0.2; // 20 % šířky displeje pro přepnutí
+                const threshold = window.innerWidth * 0.2; // 20 % šířky obrazovky pro překlopení
                 
                 if (currentDeltaX < -threshold) {
-                    // Posun doleva -> Další píseň
-                    switchSongWithAnimation(1, currentDeltaX);
+                    switchSongWithCubeAnimation(1);
                 } else if (currentDeltaX > threshold) {
-                    // Posun doprava -> Předchozí píseň
-                    switchSongWithAnimation(-1, currentDeltaX);
+                    switchSongWithCubeAnimation(-1);
                 } else {
-                    // Vracíme se zpět na střed
-                    contentElem.classList.add('animate-swipe');
-                    contentElem.style.transform = 'translateX(0px)';
+                    // Vracíme kostku zpět na čelní pohled
+                    contentElem.classList.add('animate-cube');
+                    contentElem.style.transformOrigin = '50% 50%';
+                    contentElem.style.transform = 'translateX(0px) rotateY(0deg)';
                     contentElem.style.opacity = '1';
                 }
             });
         }
 
-        // Dokončení posunu a načtení nové písně
-        function switchSongWithAnimation(direction, startXPos) {
+        // Dokončení 3D rotace kostky a načtení nové píseň
+        function switchSongWithCubeAnimation(direction) {
             isAnimating = true;
             const contentElem = document.getElementById('detail-content');
             const dataSource = isInSecretMode ? secretSongs : allSongs;
             
-            contentElem.classList.add('animate-swipe');
+            contentElem.classList.add('animate-cube');
             
-            // Text dojede až za okraj obrazovky
-            const exitX = direction === 1 ? -window.innerWidth : window.innerWidth;
-            contentElem.style.transform = `translateX(${exitX}px)`;
+            // Dokončení 3D rotace o 90 stupňů pryč z obrazovky
+            if (direction === 1) {
+                contentElem.style.transformOrigin = '100% 50%';
+                contentElem.style.transform = `translateX(-${window.innerWidth}px) rotateY(-90deg)`;
+            } else {
+                contentElem.style.transformOrigin = '0% 50%';
+                contentElem.style.transform = `translateX(${window.innerWidth}px) rotateY(90deg)`;
+            }
             contentElem.style.opacity = '0';
 
             setTimeout(() => {
@@ -588,32 +611,37 @@
 
                 const song = dataSource[currentSongIndex];
                 
-                // Připravíme novou píseň na druhé straně
-                contentElem.classList.remove('animate-swipe');
-                const entryX = direction === 1 ? window.innerWidth : -window.innerWidth;
-                contentElem.style.transform = `translateX(${entryX}px)`;
+                // Připravíme druhou stěnu kostky na protější straně
+                contentElem.classList.remove('animate-cube');
+                if (direction === 1) {
+                    contentElem.style.transformOrigin = '0% 50%';
+                    contentElem.style.transform = `translateX(${window.innerWidth}px) rotateY(90deg)`;
+                } else {
+                    contentElem.style.transformOrigin = '100% 50%';
+                    contentElem.style.transform = `translateX(-${window.innerWidth}px) rotateY(-90deg)`;
+                }
 
                 showDetailUI(song, currentSongIndex + 1).then(() => {
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
-                            contentElem.classList.add('animate-swipe');
-                            contentElem.style.transform = 'translateX(0px)';
+                            contentElem.classList.add('animate-cube');
+                            contentElem.style.transform = 'translateX(0px) rotateY(0deg)';
                             contentElem.style.opacity = '1';
 
                             setTimeout(() => {
-                                contentElem.classList.remove('animate-swipe');
+                                contentElem.classList.remove('animate-cube');
+                                contentElem.style.transformOrigin = '50% 50%';
                                 isAnimating = false;
-                            }, 250);
+                            }, 300);
                         });
                     });
                 });
-            }, 200);
+            }, 250);
         }
 
-        // Tlačítka ◄ / ►
         function navigateSong(direction) {
             if (isAnimating) return;
-            switchSongWithAnimation(direction, 0);
+            switchSongWithCubeAnimation(direction);
         }
 
         function toggleStageMode() {

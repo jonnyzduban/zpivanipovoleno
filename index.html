@@ -693,12 +693,18 @@
             if (songs.length === 0) return;
             
             const borderColor = isInSecretMode ? 'var(--accent-color)' : 'var(--border-color)';
+            const dataSource = isInSecretMode ? secretSongs : allSongs;
             
-            listContainer.innerHTML = songs.map((song, index) => `
-                <div class="song-item" onclick="openSongByIndex(${index})" style="border-color: ${borderColor};">
-                    <div><span class="song-number">${index + 1}.</span>${song.formattedName}</div>
-                </div>
-            `).join('');
+            listContainer.innerHTML = songs.map((song, index) => {
+                const realIndex = dataSource.findIndex(s => s.url === song.url);
+                const displayNumber = realIndex !== -1 ? realIndex + 1 : index + 1;
+
+                return `
+                    <div class="song-item" onclick="openSongByIndex(${index})" style="border-color: ${borderColor};">
+                        <div><span class="song-number">${displayNumber}.</span>${song.formattedName}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function filterSongs() {

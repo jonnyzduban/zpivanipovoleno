@@ -376,6 +376,28 @@
 </head>
 <body>
 
+    <!-- POP-UP VAROVÁNÍ (1x ZA DEN) -->
+    <div id="age-gate-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: var(--card-bg, #1e1e1e); border: 2px solid var(--accent-color, #ff9800); border-radius: 12px; padding: 25px 20px; max-width: 420px; text-align: center; color: var(--text-color, #fff); box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+            <div style="font-size: 40px; margin-bottom: 10px;">🔞 🔥</div>
+            <h2 style="color: var(--accent-color, #ff9800); margin-bottom: 12px; font-size: 20px;">VAROVÁNÍ PŘED VSTUPEM</h2>
+            
+            <p id="gate-text" style="font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
+                Tento web obsahuje texty písní, které mohou způsobit falešný zpěv, nekontrolovatelný hluk a potřebu nalít si další drink.<br><br>
+                <strong>Jsi fyzicky i psychicky připraven/a zpívat z plných plic?</strong>
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button onclick="acceptGate()" style="background: var(--accent-color, #ff9800); color: #000; border: none; padding: 12px 16px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">
+                    🎵 ANO, CHCI ZPÍVAT!
+                </button>
+                <button id="btn-no" onclick="rejectGate()" style="background: transparent; color: #888; border: 1px solid #444; padding: 10px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;">
+                    🏃 Ne, jsem srab a budu jen mlčet
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="main-container">
         <header id="main-header">
             <div id="header-title" class="header-title" onclick="goHome()">🔥 Zpívání povoleno 2.0</div>
@@ -463,7 +485,60 @@
         let touchStartX = 0;
         let touchStartY = 0;
 
+        // Texty a tlačítka pro přemlouvání u varování
+        const noResponses = [
+            {
+                text: "<strong>Ale no tak...</strong> U ohně přece nezpívají jen slavíci! Jsi si fakt jistý/á, že nechceš vydat ani hláska?",
+                btnNo: "Fakt nechci, mám strach"
+            },
+            {
+                text: "<strong>Nenech se prosit!</strong> Když dáš pár piva nebo panáků, půjde to samo. Dáš tomu šanci?",
+                btnNo: "Stále ne, budu jen koukat do ohně"
+            },
+            {
+                text: "<strong>Ty jsi ale tvrdohlavý/á...</strong> Poslední šance. Opravdu tu chceš jen tak sedět jako pecka?",
+                btnNo: "Jo, jsem mrzout"
+            },
+            {
+                text: "<strong>Blbý, musíte zpívat všichni!</strong><br><br>Tady není žádné 'neexistuje'. Dneska se zkrátka zpívá, tak otvírej pusu a přidej se!",
+                btnNo: null
+            }
+        ];
+
+        let noClickCount = 0;
+
+        function checkAgeGate() {
+            const today = new Date().toISOString().split('T')[0];
+            const lastConfirmed = localStorage.getItem('singing_gate_confirmed');
+
+            if (lastConfirmed !== today) {
+                document.getElementById('age-gate-overlay').style.display = 'flex';
+            }
+        }
+
+        function acceptGate() {
+            const today = new Date().toISOString().split('T')[0];
+            localStorage.setItem('singing_gate_confirmed', today);
+            document.getElementById('age-gate-overlay').style.display = 'none';
+        }
+
+        function rejectGate() {
+            if (noClickCount < noResponses.length) {
+                const response = noResponses[noClickCount];
+                document.getElementById('gate-text').innerHTML = response.text;
+                
+                const btnNo = document.getElementById('btn-no');
+                if (response.btnNo) {
+                    btnNo.innerText = response.btnNo;
+                } else {
+                    btnNo.style.display = 'none';
+                }
+                noClickCount++;
+            }
+        }
+
         function initApp() {
+            checkAgeGate();
             initTheme();
 
             const cachedSongs = localStorage.getItem('cached_songs');
@@ -486,7 +561,6 @@
             const detailContainer = document.getElementById('view-detail');
             const contentElem = document.getElementById('detail-content');
             
-            // Detekce trojitého poklepání
             detailContainer.addEventListener('click', (e) => {
                 if (e.target.closest('button') || e.target.closest('.font-controls')) return;
 
@@ -501,7 +575,6 @@
                 }
             });
 
-            // Gesta pro posun písní
             contentElem.addEventListener('touchstart', (e) => {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
@@ -525,7 +598,6 @@
             }, { passive: true });
         }
 
-        // PŘECHOD (100 ms odjezd + 150 ms příjezd, načtení dat PŘED animací)
         async function navigateSong(direction) {
             if (isAnimating) return;
             isAnimating = true;
@@ -533,11 +605,9 @@
             const contentElem = document.getElementById('detail-content');
             const dataSource = isInSecretMode ? secretSongs : allSongs;
             
-            // Určení nové písničky
             const nextIndex = (currentSongIndex + direction + dataSource.length) % dataSource.length;
             const song = dataSource[nextIndex];
 
-            // 1. NEJDŘÍVE stáhneme text na pozadí (stará píseň stále svítí)
             let newText = "";
             try {
                 const targetUrl = song.url.startsWith('http') ? song.url : encodeURIComponent(song.url);
@@ -551,26 +621,22 @@
                 newText = "⚠️ Chyba při načítání písně.";
             }
 
-            // 2. Rychlý ODJEZD staré písničky (100 ms)
             contentElem.style.transition = 'transform 0.10s ease-in, opacity 0.10s ease-in';
             contentElem.style.transform = `translateX(${direction === 1 ? '-80px' : '80px'})`;
             contentElem.style.opacity = '0';
 
             setTimeout(() => {
-                // Aktualizace indexu, titulu a vložení staženého textu
                 currentSongIndex = nextIndex;
                 document.getElementById('detail-title').innerHTML = `<span style="color: var(--accent-color);">${currentSongIndex + 1}.</span> ${song.formattedName}`;
                 contentElem.innerHTML = highlightChords(newText);
                 autoFitFont();
                 window.scrollTo(0, 0);
 
-                // 3. Příprava na druhé straně
                 contentElem.style.transition = 'none';
                 contentElem.style.transform = `translateX(${direction === 1 ? '80px' : '-80px'})`;
 
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        // PŘÍJEZD nové písničky (150 ms)
                         contentElem.style.transition = 'transform 0.15s ease-out, opacity 0.15s ease-out';
                         contentElem.style.transform = 'translateX(0)';
                         contentElem.style.opacity = '1';

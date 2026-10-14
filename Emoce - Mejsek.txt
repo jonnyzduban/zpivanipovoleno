@@ -2,7 +2,7 @@ C            Ami C                 Ami
 Já myslím na ní, já ji chci tolik říct. 
 C.          Ami. Dmi     G.          C
 Já myslím na ní, ona ale nechce nic vic.
-C                      Ami
+C           Ami        C            Ami
 Já musím teď přemýšlet, co se stalo, proč se to zkazilo.
 C.                  Ami Dmi.           G.                C
 Já musím teď přemýšlet, proč ona má v srdci, někoho jiného. 
@@ -20,10 +20,11 @@ takhle já žít nechci,
 takhle dál žít nechci, 
 takhle já žít nechci,
 
-Ami             D        E  
+Ami             D        G  
 jen restartovat a začít odznova.
 
 6x 
+G Emi
 Nesnáším svoje emoce 
 G.          D.         C
 Nesnáším....zasraný... emoce

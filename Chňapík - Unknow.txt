@@ -12,9 +12,6 @@ D         A     E           A
 D         A     E           A
 ťap, ťap, ťapi, ťapi, ťapi, ťap
 
-
-
-
             A         E          A
 Já jsem ten Chňapík maličký krokodýl
         D        A            E
@@ -28,8 +25,6 @@ D             A       E               A
 Chňap, chňap, chňapi, chňapi, chňapi, chňap
 D             A       E               A
 chňap, chňap, chňapi, chňapi, chňapi, chňap
-
-
 
 
             A          E          A
@@ -46,7 +41,7 @@ Chňap, chňap, chňapi, chňapi, chňapi, chňap
 D             A       E               A
 chňap, chňap, chňapi, chňapi, chňapi, chňap
 
-
+         A         E          A
 Mé jméno Chňapík, krokodýlí kluk
           D            A        E
 večer jdu spinkat, tak tiše ani muk
@@ -60,6 +55,3 @@ Chňap, chňap, chňapi, chňapi, chňapi, chňap
 D             A       E               A
 chňap, chňap, chňapi, chňapi, chňapi, chňap
 
-
-
-Chňap, chňap, chňapi, chňapi, chňapi, chňap

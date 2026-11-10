@@ -1,6 +1,6 @@
 Ami                  G      E
 Hledá se děda, starej moula.
-Ami                 G            E
+Ami                         G    E
 Vždyť boty má tady, kde může být…
 Ami                  G      E
 Hledá se děda, kde se toulá?
@@ -47,6 +47,8 @@ co se zas stalo, co je zas s dědou?
           Ami    C          G
 Chci ještě vidět jeho kadeř šedou.
 
-Ref 2x
+Ref
 
 Pod stolem není...
+
+Ref
